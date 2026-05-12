@@ -1,0 +1,16 @@
+{
+  "name": "reduck-skill",
+  "metadata": {
+    "description": "Reduck CLI skill — web tasks as function calls.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "reduck",
+      "description": "Drive the Reduck CLI to perform web tasks (scrape, search, log in, fetch SPA, paginate site-search) as function calls.",
+      "source": "./",
+      "strict": false,
+      "skills": ["."]
+    }
+  ]
+}
