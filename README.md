@@ -12,9 +12,11 @@ lead-gen verticals build on it.
 ```
 skills/
 ├── reduck/                       # generalist — REQUIRED base for the verticals
-└── lead-gen/
-    ├── linkedin/leads/           # linkedin-leads
-    └── facebook/leads/           # facebook-leads
+├── lead-gen/
+│   ├── linkedin/leads/           # linkedin-leads
+│   └── facebook/leads/           # facebook-leads
+└── product-research/
+    └── amazon/research/          # amazon-research
 ```
 
 There is no `SKILL.md` at the repo root, so the [skills CLI](https://skills.sh)

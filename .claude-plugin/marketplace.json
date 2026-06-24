@@ -5,8 +5,8 @@
     "email": "hello@reduck.ai"
   },
   "metadata": {
-    "description": "Reduck CLI skills — the generalist plus lead-gen verticals.",
-    "version": "0.2.0"
+    "description": "Reduck CLI skills — the generalist plus lead-gen and product-research verticals.",
+    "version": "0.3.0"
   },
   "plugins": [
     {
@@ -17,7 +17,8 @@
       "skills": [
         "./skills/reduck",
         "./skills/lead-gen/linkedin/leads",
-        "./skills/lead-gen/facebook/leads"
+        "./skills/lead-gen/facebook/leads",
+        "./skills/product-research/amazon/research"
       ]
     }
   ]
