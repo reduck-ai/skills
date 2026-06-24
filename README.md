@@ -1,4 +1,4 @@
-# reduck-skill
+# reduck-skills
 
 Agent Skill that teaches any compatible coding agent (Claude Code, Codex, Cursor, OpenCode, …) to drive the [Reduck](https://reduck.dev) CLI as a function: discover a method, call it, read the records back.
 
