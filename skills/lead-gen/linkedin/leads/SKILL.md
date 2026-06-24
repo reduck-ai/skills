@@ -1,7 +1,7 @@
 ---
 name: linkedin-leads
 description: |
-  Prospect and qualify B2B leads from LinkedIn activity. Use when the user wants
+  Prospect and qualify leads from LinkedIn activity. Use when the user wants
   to find who is posting or engaging on a topic, build a lead list from a post's
   reactors, or qualify the resulting profiles/companies. Discovers recent posts,
   pulls each post's content and reactors, then enriches the promising ones into a

@@ -1,7 +1,7 @@
 ---
 name: facebook-leads
 description: |
-  Prospect and qualify B2B leads from Facebook Group and Page activity. Use when
+  Prospect and qualify leads from Facebook Group and Page activity. Use when
   the user wants to find who is active in a niche or community on Facebook, build
   a lead list from a group's members or a post's commenters, or surface a
   competitor Page's top content and its engaged audience. Discovers relevant
