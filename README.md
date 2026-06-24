@@ -55,7 +55,7 @@ Inside Claude Code:
 
 ```
 /plugin marketplace add reduck-ai/skills
-/plugin install reduck@reduck-skill
+/plugin install reduck@reduck-skills
 ```
 
 `/plugin marketplace update` pulls future changes. The `reduck` plugin bundles all
