@@ -1,16 +1,24 @@
 {
   "name": "reduck-skill",
+  "owner": {
+    "name": "Reduck",
+    "email": "hello@reduck.ai"
+  },
   "metadata": {
-    "description": "Reduck CLI skill — web tasks as function calls.",
-    "version": "0.1.0"
+    "description": "Reduck CLI skills — the generalist plus lead-gen verticals.",
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "reduck",
-      "description": "Drive the Reduck CLI to perform web tasks (scrape, search, log in, fetch SPA, paginate site-search) as function calls.",
+      "description": "Drive the Reduck CLI to perform web tasks (scrape, search, log in, fetch SPA, paginate site-search) as function calls. REQUIRED base for the lead-gen verticals.",
       "source": "./",
       "strict": false,
-      "skills": ["."]
+      "skills": [
+        "./skills/reduck",
+        "./skills/lead-gen/linkedin/leads",
+        "./skills/lead-gen/facebook/leads"
+      ]
     }
   ]
 }
