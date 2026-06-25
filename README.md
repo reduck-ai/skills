@@ -57,11 +57,21 @@ Inside Claude Code:
 
 ```
 /plugin marketplace add reduck-ai/skills
-/plugin install reduck@reduck-skills
+/plugin install reduck@reduck-skills          # the REQUIRED base, on its own
+/plugin install linkedin-leads@reduck-skills  # + only the verticals you want
 ```
 
-`/plugin marketplace update` pulls future changes. The `reduck` plugin bundles all
-three skills.
+Install is granular — one plugin per skill, so you only load the descriptions you
+use (an unused skill still costs context). The verticals (`linkedin-leads`,
+`facebook-leads`, `amazon-research`) assume the `reduck` base is installed; there
+is no auto-dependency, so install `reduck` alongside any vertical. Prefer one
+command for everything? Use the convenience bundle:
+
+```
+/plugin install reduck-all@reduck-skills      # base + all three verticals
+```
+
+`/plugin marketplace update` pulls future changes.
 
 ## Prerequisites
 
