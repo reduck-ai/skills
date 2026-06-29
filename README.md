@@ -10,6 +10,7 @@ This repo is a small catalogue. The generalist `reduck` skill is the base; the
 lead-gen verticals build on it.
 
 ```
+SKILL.md                          # → skills/reduck/SKILL.md (the default install)
 skills/
 ├── reduck/                       # generalist — REQUIRED base for the verticals
 ├── lead-gen/
@@ -19,33 +20,38 @@ skills/
     └── amazon/research/          # amazon-research
 ```
 
-There is no `SKILL.md` at the repo root, so the [skills CLI](https://skills.sh)
-discovers every skill recursively.
+The repo-root `SKILL.md` is the generalist `reduck` skill, so the
+[skills CLI](https://skills.sh) installs **just `reduck` by default**. The
+verticals are opt-in: pass `--full-depth` (or `--skill <name> --full-depth`) to
+discover them, or install them individually via the Claude Code marketplace below.
 
 ## Install
 
 ### Any agent — via the skills CLI
 
 ```bash
-# Interactive picker — choose what to install (a human terminal shows checkboxes)
+# Default — installs just the reduck base skill
 npx skills add reduck-ai/skills
 
-# Just list what's available, install nothing
-npx skills add reduck-ai/skills --list
+# See the verticals too (they live below the root SKILL.md, so need --full-depth)
+npx skills add reduck-ai/skills --list --full-depth
 
-# Install a specific skill. The verticals need the reduck base, so install both
-# (repeat the --skill flag — a comma-separated list is NOT parsed as multiple):
-npx skills add reduck-ai/skills --skill reduck --skill facebook-leads
-npx skills add reduck-ai/skills --skill reduck --skill linkedin-leads
+# Install a vertical. The verticals need the reduck base AND --full-depth to be
+# discovered (repeat --skill — a comma-separated list is NOT parsed as multiple):
+npx skills add reduck-ai/skills --full-depth --skill reduck --skill facebook-leads
+npx skills add reduck-ai/skills --full-depth --skill reduck --skill linkedin-leads
+
+# Everything in one go
+npx skills add reduck-ai/skills --full-depth --skill '*'
 
 # Try a skill's prompt without installing it
 npx skills use reduck-ai/skills@facebook-leads
 ```
 
-Note: inside a coding agent (or with `-y`) the CLI is non-interactive and installs
-**all** discovered skills. The checkbox picker only appears in a human TTY without
-flags. The `reduck` skill is the REQUIRED base — the verticals assume it is present
-for the bridge lifecycle and how to run a script.
+Note: inside a coding agent (or with `-y`) the CLI is non-interactive. With the
+root `SKILL.md` present it installs **just `reduck`** by default; add `--full-depth`
+to pull the verticals. The `reduck` skill is the REQUIRED base — the verticals
+assume it is present for the bridge lifecycle and how to run a script.
 
 Manual install — copy or clone the skill's `SKILL.md` into your agent's skills
 directory, e.g. `~/.claude/skills/facebook-leads/SKILL.md`.
