@@ -7,7 +7,7 @@ Reduck runs web automations from the terminal — scraping, structured extractio
 ## Skills in this repo
 
 This repo is a small catalogue. The generalist `reduck` skill is the base; the
-lead-gen verticals build on it.
+lead-gen, product-research and ops verticals build on it.
 
 ```
 SKILL.md                          # → skills/reduck/SKILL.md (the default install)
@@ -16,8 +16,10 @@ skills/
 ├── lead-gen/
 │   ├── linkedin/leads/           # linkedin-leads
 │   └── facebook/leads/           # facebook-leads
-└── product-research/
-    └── amazon/research/          # amazon-research
+├── product-research/
+│   └── amazon/research/          # amazon-research
+└── ops/
+    └── billing/invoices/         # saas-invoices
 ```
 
 The repo-root `SKILL.md` is the generalist `reduck` skill, so the
@@ -41,6 +43,7 @@ npx skills add reduck-ai/skills --list --full-depth
 # discovered (repeat --skill — a comma-separated list is NOT parsed as multiple):
 npx skills add reduck-ai/skills --full-depth --skill reduck --skill facebook-leads
 npx skills add reduck-ai/skills --full-depth --skill reduck --skill linkedin-leads
+npx skills add reduck-ai/skills --full-depth --skill reduck --skill saas-invoices
 
 # Everything in one go
 npx skills add reduck-ai/skills --full-depth --skill '*'
@@ -70,13 +73,13 @@ Inside Claude Code:
 
 Install is granular — one plugin per skill, so you only load the descriptions you
 use (an unused skill still costs context). The verticals (`linkedin-leads`,
-`facebook-leads`, `amazon-research`) assume the `reduck` base is installed; there
+`facebook-leads`, `amazon-research`, `saas-invoices`) assume the `reduck` base is installed; there
 is no auto-dependency, so install `reduck` alongside any vertical. Prefer one
 command for everything? Use the convenience bundle:
 
 ```
 /plugin install required@reduck-skills         # just the reduck base
-/plugin install use-case-skills@reduck-skills  # all three verticals
+/plugin install use-case-skills@reduck-skills  # all verticals
 ```
 
 `/plugin marketplace update` pulls future changes.
