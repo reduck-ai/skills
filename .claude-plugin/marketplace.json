@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Reduck CLI skills — the generalist plus lead-gen and product-research verticals.",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "plugins": [
     {
@@ -46,15 +46,24 @@
       ]
     },
     {
-      "name": "reduck-all",
-      "description": "Convenience bundle — the reduck base plus every vertical (linkedin-leads, facebook-leads, amazon-research) in one install.",
+      "name": "use-case-skills",
+      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research). Needs the reduck base plugin. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/reduck",
         "./skills/lead-gen/linkedin/leads",
         "./skills/lead-gen/facebook/leads",
         "./skills/product-research/amazon/research"
+      ]
+    },
+    {
+      "name": "required",
+      "description": "The reduck base skill on its own — install this first. (Also the \"Required\" group in the skills CLI picker.)",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./",
+        "./skills/reduck"
       ]
     }
   ]

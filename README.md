@@ -33,7 +33,8 @@ discover them, or install them individually via the Claude Code marketplace belo
 # Default — installs just the reduck base skill
 npx skills add reduck-ai/skills
 
-# See the verticals too (they live below the root SKILL.md, so need --full-depth)
+# See the verticals too (they live below the root SKILL.md, so need --full-depth).
+# The picker groups them: "Required" (reduck) first, then "Use Case Skills".
 npx skills add reduck-ai/skills --list --full-depth
 
 # Install a vertical. The verticals need the reduck base AND --full-depth to be
@@ -74,7 +75,8 @@ is no auto-dependency, so install `reduck` alongside any vertical. Prefer one
 command for everything? Use the convenience bundle:
 
 ```
-/plugin install reduck-all@reduck-skills      # base + all three verticals
+/plugin install required@reduck-skills         # just the reduck base
+/plugin install use-case-skills@reduck-skills  # all three verticals
 ```
 
 `/plugin marketplace update` pulls future changes.
