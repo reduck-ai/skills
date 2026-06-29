@@ -5,8 +5,8 @@
     "email": "hello@reduck.ai"
   },
   "metadata": {
-    "description": "Reduck CLI skills — the generalist plus lead-gen and product-research verticals.",
-    "version": "0.5.0"
+    "description": "Reduck CLI skills — the generalist plus lead-gen, product-research and ops verticals.",
+    "version": "0.6.0"
   },
   "plugins": [
     {
@@ -46,14 +46,24 @@
       ]
     },
     {
+      "name": "saas-invoices",
+      "description": "Fetch and download invoices for paid SaaS: one list_invoices script per host returns each invoice URL, then a generic step downloads the PDF. Needs the reduck base plugin.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/ops/billing/invoices"
+      ]
+    },
+    {
       "name": "use-case-skills",
-      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research). Needs the reduck base plugin. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
+      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research, saas-invoices). Needs the reduck base plugin. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/lead-gen/linkedin/leads",
         "./skills/lead-gen/facebook/leads",
-        "./skills/product-research/amazon/research"
+        "./skills/product-research/amazon/research",
+        "./skills/ops/billing/invoices"
       ]
     },
     {
