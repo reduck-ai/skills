@@ -46,6 +46,7 @@ before trusting an action.
 **Enrich — shortlist only.**
 
 - `@reduck/linkedin.com/get_profile` — `(profileUrl | member-id link)` → the canonical profile (name, headline, location, About). Resolves a reactor's member-id link to the real profile and is the input the other profile scripts need — always the first enrichment call.
+- `@reduck/linkedin.com/get_profile_info` — `(publicId)` → the structured top-card metadata in one call: connection `degree`, `currentCompany`, `education` chip, `followers`/`connections`, and `contactInfoAvailable`. Complements `get_profile` (which carries the About prose but not these chips) — use it for a fast qualification read without the separate experience/education/company calls.
 - `@reduck/linkedin.com/get_profile_experience` — `(profileUrl)` → roles / tenure. Confirms the person is who the post suggested (title, seniority, current company).
 - `@reduck/linkedin.com/get_profile_education` — `(profileUrl)` → schools / degrees. A qualification signal (alma mater, field of study) for the shortlist.
 - `@reduck/linkedin.com/get_profile_posts` — `(profileUrl)` → the person's own recent posts. A strong personalization signal (what they're working on / care about) and an activity check before a human spends time on them.
@@ -61,11 +62,24 @@ before trusting an action.
 
 - `@reduck/linkedin.com/list_inbox` — `(limit default 20, unreadOnly)` → conversations (threadUrl, threadId, participants name/profileUrl/degree, unreadCount, lastActivityAt, lastMessage text/at/fromSelf/subject). Where a reply or follow-up already lives; returns the first inbox page only.
 - `@reduck/linkedin.com/get_thread` — `(threadUrl — from list_inbox)` → participants + messages (from, fromSelf, text, time, subject), chronological. Read the full exchange before drafting a reply. Returns the recent page only.
+- `@reduck/linkedin.com/get_received_invitations` — `(limit default 100)` → the pending connection requests *you've received* (inviter name, headline, profileUrl, mutual-connection note, and `type`: person|event|newsletter|page). The triage surface before `accept_invitation` / `ignore_invitation` — read who's waiting, then act on a person-by-person basis.
+
+**Own-account analytics (your own footprint, not leads).** Measure the logged-in account's own reach — track how your own outreach/content is performing. Off the prospecting path; both are owner-only and read-only.
+
+- `@reduck/linkedin.com/get_dashboard` — `()` → your own analytics overview (post impressions, total followers, profile viewers, search appearances; newsletter rows when present): one entry per tile with `value`, `changePercent`, `direction` (up/down/flat), and the comparison window. Requires login; English UI assumed.
+- `@reduck/linkedin.com/get_post_analytics` — `(postUrl — YOUR OWN post: a urn from get_profile_posts, a permalink, or a bare activity id)` → that post's analytics: impressions, membersReached, profileViewers, followersGained, the engagement breakdown (reactions/comments/reposts/saves/sends, linkVisits) and `topDemographics` per category (location, seniority, company size, industry, job title, company). **Owner-only** — throws on posts you didn't author; pairs with `get_profile_posts` (pass the urn it returns). Use `get_post` for public counts on anyone's post.
 
 **Sales Navigator — direct targeting (requires a paid seat).** When the user has a Sales Navigator seat, this is the direct-targeting path: search by structured criteria and skip the post-discovery hop entirely. Skip this block only if they have no seat — the post-driven path works without one.
 
 - `@reduck/linkedin.com/sales_navigator_search_people` — `(filters: keywords/title/geography/seniority/function/company-size/tenure, limit)` → people matching structured criteria, with richer filters than native `search_people`. The main direct-targeting entry point; feed its results straight to Qualify/Enrich.
 - `@reduck/linkedin.com/sales_navigator_search_accounts` — `(filters, limit)` → companies matching structured criteria. Account-first targeting.
+- `@reduck/linkedin.com/sales_navigator_get_lead` — `(leadId — from sales_navigator_search_people)` → the full lead profile: fullName, headline, summary, degree, location, the classic LinkedIn profile URL, full position history, saved-list status, and contact info *when the lead is unlocked for the seat*. The enrich step after a SalesNav search.
+- `@reduck/linkedin.com/sales_navigator_get_account` — `(accountId — from sales_navigator_search_accounts, or a companyUrn off search_people)` → the company account: description, industry, type, specialties, website, founded year, HQ/locations, revenue range, employee count + growth, headcount history, median tenure, and spotlight employees (each with a `leadId` to pivot back to `get_lead`).
+- `@reduck/linkedin.com/sales_navigator_list_lead_lists` — `()` → the viewer's saved-lead lists (id — the join key for saving, name, description, source MANUAL|SYSTEM|CRM, role, entityCount, timestamps), most-recently-modified first. Returns the first page + the exact total so truncation is visible.
+- `@reduck/linkedin.com/sales_navigator_get_lead_list` — `(list id — from list_lead_lists, start/count default 25)` → the leads saved inside a list (salesProfileUrn — feeds `save_lead_to_list`/`get_lead`, salesLeadUrl, name, degree, geoRegion, current title/company, dateAddedToListAt, crmStatus), newest-added first, with the exact total.
+- `@reduck/linkedin.com/sales_navigator_save_lead_to_list` — **WRITE** — `(salesProfile urns — from search_people/get_lead_list/get_lead, list ids — from list_lead_lists)` → saves one or more leads into one or more *manual* lists (bulkSaveByMembers). Per-(lead,list) result: `CONFLICT` = already in that list, anything else = saved. Manual lists you own only (not system/auto lists).
+- `@reduck/linkedin.com/sales_navigator_get_inbox` — `(count, filter INBOX|UNREAD|ARCHIVED, pageStartsAt)` → the latest SalesNav inbox conversations: threads (threadId, unread + unreadCount, archived, totalMessageCount, the other participants with salesLeadUrl, and the last message with body/subject/type/deliveredAt/direction). Paginate newest→oldest via the returned `nextPageStartsAt`. Distinct from classic `list_inbox`.
+- `@reduck/linkedin.com/sales_navigator_get_thread` — `(threadId — from get_inbox, messageCount)` → the full SalesNav conversation: participants, totalMessageCount, and every message chronologically (body, subject for InMail, type MESSAGE|INMAIL, deliveredAt, attachments, direction sent|received). If `returnedCount < totalMessageCount`, raise `messageCount`.
 - `@reduck/linkedin.com/sales_navigator_send_message` — **WRITE** — `(recipientName, body)` → sends a regular Sales Navigator message (no InMail/subject/credit) to a 1st/2nd-degree connection found by name in the SalesNav inbox composer. Out-of-network leads aren't reachable here (they need InMail from the lead page). Confirm the recipient with the echoed `recipientResolved` before trusting the send.
 
 **Hiring signal (optional, off the main leads path).** A company actively hiring for a role is a buying/expansion signal; use only when hiring intent is the targeting criterion.
@@ -82,6 +96,11 @@ before trusting an action.
 - `@reduck/linkedin.com/reply_comment` — **WRITE** — `(postUrl, commentUrn — from get_post_comments/comment_post, reply)` → posts a public reply to a specific comment. The target comment must already be loaded on the page (not behind a "load more" / "see previous replies" loader); the reply box's auto-@mention is replaced with your text.
 - `@reduck/linkedin.com/repost` — **WRITE** — `(postUrl)` → instant repost to your feed (no added thoughts; quote-repost is a separate flow). Returns `reposted`. To undo, delete the repost from your own activity.
 - `@reduck/linkedin.com/unfollow` — **WRITE** — `(profileUrl)` → stops following a member. Idempotent: returns `not_following` if you weren't. Note: unfollowing is not the same as disconnecting (you stay 1st-degree).
+- `@reduck/linkedin.com/connect_with_note` — **WRITE** — `(profileUrl, message ≤200 chars)` → connection request *with* a personal note (higher accept rate than the note-free `connect`). Returns `status`: `sent` | `already_connected` | `pending` | `no_quota` | `no_connect_cta` | `failed`. Fails fast when the free-tier monthly note quota is exhausted (`no_quota`) or the profile isn't connectable.
+- `@reduck/linkedin.com/follow` — **WRITE** — `(profileUrl)` → follows a member without connecting (works whether Follow is the top-card action or buried under "More"). Idempotent: `already_following` / `no_follow_cta`. A lighter-touch warm-up than a connection request.
+- `@reduck/linkedin.com/withdraw` — **WRITE** — `(profileUrl)` → withdraws a *pending sent* invitation. Idempotent: returns `not_pending` if none outstanding. Pipeline cleanup. Gotcha: after withdrawing, LinkedIn blocks resending to that person for ~3 weeks; withdrawing does **not** unfollow.
+- `@reduck/linkedin.com/accept_invitation` — **WRITE** — `(name — inviter's display name, from get_received_invitations)` → accepts a *received* invitation. Homonym-guarded: ≥2 matching pending invitations → throws rather than guess. Confirm with the returned `recipientResolved`.
+- `@reduck/linkedin.com/ignore_invitation` — **WRITE** — `(name — inviter's display name)` → declines a *received* invitation. Same homonym guard; ignoring is not easily reversible, so triage from `get_received_invitations` first.
 
 ## System prompt
 
@@ -124,12 +143,13 @@ user's question — don't enrich or act on what you won't use.
    as soon as the verdict is decided.
 5. **Act** (optional, WRITE — human-approved shortlist only) — take the action the
    user asked for, never on the raw pool:
-   - *Outreach:* `connect` (request, no note) → once connected, `send_message`
+   - *Outreach:* `connect` (request, no note) or `connect_with_note` (personal note, higher accept rate, watch the free-tier `no_quota`) → once connected, `send_message`
      (classic — reply via `list_inbox`/`get_thread`, or start by name), or
-     `sales_navigator_send_message` on a SalesNav seat.
+     `sales_navigator_send_message` on a SalesNav seat. `follow` is the lighter-touch alternative when a connection request is too much.
    - *Warm/nurture on the feed:* `react_post`, `comment_post`, `reply_comment`
      (needs a `commentUrn`), `repost`.
-   - *Maintenance:* `unfollow`.
+   - *Inbound triage:* `get_received_invitations` to see who's requested you, then `accept_invitation` / `ignore_invitation` by name (homonym-guarded).
+   - *Maintenance:* `unfollow`, or `withdraw` to retract a pending sent invitation (cleans the pipeline; blocks resending for ~3 weeks).
    Always confirm the resolved target (echoed `recipient`/`recipientResolved`,
    parsed `publicId`) before trusting a send, and rely on the idempotent statuses
    (`already_connected`, `pending`, `already_reacted`, `not_following`) rather than
