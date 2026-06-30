@@ -88,7 +88,7 @@ command for everything? Use the convenience bundle:
 
 ```bash
 npx -y @reduck-ai/cli@latest login   # OAuth PKCE, opens a browser
-npx -y @reduck-ai/cli@latest local   # start the local browser bridge; hand its wss:// URL to the MCP
+npx -y @reduck-ai/cli@latest local   # start the bridge to your browser; hand its wss:// URL to the MCP
 ```
 
 The bridge is a machine-wide singleton — one `reduck local` serves any number of

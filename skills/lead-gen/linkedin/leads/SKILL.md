@@ -41,7 +41,7 @@ before trusting an action.
 
 - `@reduck/linkedin.com/get_post` — `(postUrl)` → the post's content and author. The "what was said / by whom" for a discovered URL.
 - `@reduck/linkedin.com/get_post_reactors` — `(postUrl, limit)` → the people who reacted (name + profile link + headline + degree). The engaged audience; the raw lead pool before qualification.
-- `@reduck/linkedin.com/get_post_comments` — `(postUrl, maxComments, sort)` → the commenters (name, headline, profileUrl, text, reactions, replies). A higher-intent slice than reactors — they wrote something. Use `sort: "recent"` to reach every comment (the default `relevant` hides low-engagement ones). **Run local-headed only:** reliable on a local headed Chrome (3/3), fails on the managed/cloud browser (0/3) — start the bridge with a local headed session for this one.
+- `@reduck/linkedin.com/get_post_comments` — `(postUrl, maxComments, sort)` → the commenters (name, headline, profileUrl, text, reactions, replies). A higher-intent slice than reactors — they wrote something. Use `sort: "recent"` to reach every comment (the default `relevant` hides low-engagement ones). **Run on your browser, headed, only:** reliable on your browser headed (3/3), fails on the cloud browser (0/3) — start the bridge with a headed session for this one.
 
 **Enrich — shortlist only.**
 
@@ -128,7 +128,7 @@ user's question — don't enrich or act on what you won't use.
      `search_people` (company filter).
 2. **Engage** (post-driven path only) — per post, `get_post` for the
    content/author, then the engaged audience: `get_post_reactors` (broad) and/or
-   `get_post_comments` (higher-intent — they wrote something; run local-headed).
+   `get_post_comments` (higher-intent — they wrote something; run on your browser, headed).
    A post too fresh to have engagement yields nothing here — that's expected,
    not a failure.
 3. **Qualify** — score the people as leads (the `icp` skill, if installed, is the
