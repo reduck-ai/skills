@@ -55,15 +55,25 @@
       ]
     },
     {
+      "name": "travel-search",
+      "description": "Search European train journeys on Trainline (with every calling point of the train) and Airbnb stays (search + full listing detail). Needs the reduck base plugin.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/travel/search"
+      ]
+    },
+    {
       "name": "use-case-skills",
-      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research, saas-invoices). Needs the reduck base plugin. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
+      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research, saas-invoices, travel-search). Needs the reduck base plugin. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/lead-gen/linkedin/leads",
         "./skills/lead-gen/facebook/leads",
         "./skills/product-research/amazon/research",
-        "./skills/ops/billing/invoices"
+        "./skills/ops/billing/invoices",
+        "./skills/travel/search"
       ]
     },
     {
