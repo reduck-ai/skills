@@ -5,8 +5,8 @@
     "email": "hello@reduck.ai"
   },
   "metadata": {
-    "description": "Reduck CLI skills — the generalist plus lead-gen, product-research and ops verticals.",
-    "version": "0.6.0"
+    "description": "Reduck CLI skills — the generalist plus lead-gen, product-research, ops and social verticals.",
+    "version": "0.7.0"
   },
   "plugins": [
     {
@@ -55,15 +55,45 @@
       ]
     },
     {
+      "name": "instagram",
+      "description": "Read and act on Instagram: profiles, posts/reels, comments, follower lists, feed, DMs — and, on approval, DM/comment/follow. Needs the reduck base plugin.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/social/instagram/engage"
+      ]
+    },
+    {
+      "name": "reddit",
+      "description": "Read, search, and act on Reddit: trending, subreddit threads, full threads, topic search, pain-point mining — and, on approval, post/comment/vote/DM. Needs the reduck base plugin.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/social/reddit/engage"
+      ]
+    },
+    {
+      "name": "twitter",
+      "description": "Read, search, and act on Twitter/X: public scraping via xcancel.com (no login) plus authenticated reads and, on approval, post/reply/quote/retweet/DM on x.com. Needs the reduck base plugin.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/social/twitter/engage"
+      ]
+    },
+    {
       "name": "use-case-skills",
-      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research, saas-invoices). Needs the reduck base plugin. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
+      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research, saas-invoices, instagram, reddit, twitter). Needs the reduck base plugin. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/lead-gen/linkedin/leads",
         "./skills/lead-gen/facebook/leads",
         "./skills/product-research/amazon/research",
-        "./skills/ops/billing/invoices"
+        "./skills/ops/billing/invoices",
+        "./skills/social/instagram/engage",
+        "./skills/social/reddit/engage",
+        "./skills/social/twitter/engage"
       ]
     },
     {
