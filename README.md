@@ -7,7 +7,7 @@ Reduck runs web automations from the terminal — scraping, structured extractio
 ## Skills in this repo
 
 This repo is a small catalogue. The generalist `reduck` skill is the base; the
-lead-gen, product-research and ops verticals build on it.
+lead-gen, product-research, ops and social verticals build on it.
 
 ```
 SKILL.md                          # → skills/reduck/SKILL.md (the default install)
@@ -18,8 +18,12 @@ skills/
 │   └── facebook/leads/           # facebook-leads
 ├── product-research/
 │   └── amazon/research/          # amazon-research
-└── ops/
-    └── billing/invoices/         # saas-invoices
+├── ops/
+│   └── billing/invoices/         # saas-invoices
+└── social/
+    ├── instagram/engage/         # instagram
+    ├── reddit/engage/            # reddit
+    └── twitter/engage/           # twitter
 ```
 
 The repo-root `SKILL.md` is the generalist `reduck` skill, so the
@@ -73,7 +77,8 @@ Inside Claude Code:
 
 Install is granular — one plugin per skill, so you only load the descriptions you
 use (an unused skill still costs context). The verticals (`linkedin-leads`,
-`facebook-leads`, `amazon-research`, `saas-invoices`) assume the `reduck` base is installed; there
+`facebook-leads`, `amazon-research`, `saas-invoices`, `instagram`, `reddit`,
+`twitter`) assume the `reduck` base is installed; there
 is no auto-dependency, so install `reduck` alongside any vertical. Prefer one
 command for everything? Use the convenience bundle:
 
