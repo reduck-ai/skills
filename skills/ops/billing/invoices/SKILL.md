@@ -29,12 +29,18 @@ If the vendor doesn't look like a web SaaS — or no script covers it and it has
 
 ## Auto-SSO (self-login scripts) — ask ONCE, upfront
 
-Some hosts have a **self-login script** in the catalogue (slug `login_with_google`:
-drives the Google SSO popup and picks a given Google account; expects the host to be
-logged out and that account signed into Google in the browser profile). Known hosts:
-`claude.ai`, `linkedin.com`, `dropbox.com`. For any other host, check with
-`search_scripts q=login host=<host>` — **only propose auto-SSO when such a script
-actually exists**, never invent one.
+Many hosts have a **self-login script** keyed by their **target host**, slug
+`login_with_google` (drives the Google SSO flow and picks a given Google account;
+expects the host logged out and that account signed into Google in the browser
+profile). Find one with `search_scripts q=login host=<host>` — **only propose
+auto-SSO when such a script actually exists**, never invent one. Known hosts
+(`reduck/<host>/login_with_google`): `claude.ai`, `linkedin.com`, `dropbox.com`,
+`github.com`, `airtable.com`, `asana.com`, `atlassian.com`, `calendly.com`,
+`cloudflare.com`, `cursor.com`, `descript.com`, `digitalocean.com`, `hostinger.com`,
+`linear.app`.
+
+**Extension-runner only**: these rely on the browser's native Google session, not
+cookie injection, so they do NOT work on managed/cloud (Browserbase) runs.
 
 Rules:
 - **At the very start of the run**, once you know which SaaS are in scope, ask the
@@ -43,8 +49,8 @@ Rules:
   profile** — which account to use. Offer to use the **same account for all hosts**
   by default.
 - If a single Google account is signed in, it's the default pick — don't ask which.
-- Pass the account explicitly on every run via the script's `account` arg (an email,
-  e.g. `user@company.com`).
+- Pass the account via the script's optional `email` arg (an email, e.g.
+  `user@company.com`); omit it to let the script take the sole signed-in account.
 - On an extension run, when a host turns out not logged in (auth wall, expired
   session, token-auth), chain the self-login script before `list_invoices` in the
   same session instead of concluding "not doable".
