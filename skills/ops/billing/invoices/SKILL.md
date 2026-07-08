@@ -27,6 +27,28 @@ online, target the right one (`deviceId` from `list_devices`) on BOTH
 
 If the vendor doesn't look like a web SaaS — or no script covers it and it has no self-service portal — **offer to search the user's mail** (Category B) instead of forcing Reduck.
 
+## Auto-SSO (self-login scripts) — ask ONCE, upfront
+
+Some hosts have a **self-login script** in the catalogue (slug `login_with_google`:
+drives the Google SSO popup and picks a given Google account; expects the host to be
+logged out and that account signed into Google in the browser profile). Known hosts:
+`claude.ai`, `linkedin.com`, `dropbox.com`. For any other host, check with
+`search_scripts q=login host=<host>` — **only propose auto-SSO when such a script
+actually exists**, never invent one.
+
+Rules:
+- **At the very start of the run**, once you know which SaaS are in scope, ask the
+  user ONE upfront question covering all of them: do they authorize auto-SSO for the
+  hosts that support it, and — **only if several Google accounts are signed into the
+  profile** — which account to use. Offer to use the **same account for all hosts**
+  by default.
+- If a single Google account is signed in, it's the default pick — don't ask which.
+- Pass the account explicitly on every run via the script's `account` arg (an email,
+  e.g. `user@company.com`).
+- On an extension run, when a host turns out not logged in (auth wall, expired
+  session, token-auth), chain the self-login script before `list_invoices` in the
+  same session instead of concluding "not doable".
+
 ## Category A — web SaaS: the process is STANDARD (true for any SaaS)
 
 1. **List** → `run_script <host>/list_invoices` (loggedIn). Normalised output: each
@@ -122,8 +144,11 @@ Token/localStorage/Clerk auth → cookie injection never authenticates:
 **Supabase, ClickUp, Serper, Discord, usestable, Dropcontact**.
 Reauth/SSO/anti-bot: **Adobe** (forced reauth), **Atlassian** (`id.atlassian.com`), **GoDaddy** (Akamai).
 
+Some of these unlock anyway when the host has a self-login script (e.g. `claude.ai`)
+— see § Auto-SSO before writing a host off.
+
 ## Gotchas
 - **Subdomain**: load cookies for the **app subdomain** (e.g. `dashboard.ngrok.com`, `app.mailgun.com`), not the root domain.
-- **False "not doable"**: often just **not logged in** at test time (Browserbase/ngrok/Mailgun worked once logged in / on the right subdomain). Re-check after login before concluding token-auth. **Cookie count does NOT prove login.**
+- **False "not doable"**: often just **not logged in** at test time (Browserbase/ngrok/Mailgun worked once logged in / on the right subdomain). First try § Auto-SSO if the host has a self-login script; re-check after login before concluding token-auth. **Cookie count does NOT prove login.**
 - **Cross-profile**: reduck reads only ONE Chrome profile (the one with remote-debugging on); no profile selector. If a SaaS is only logged in on another profile → open it in the profile reduck reads, or enable debugging on that profile.
 - **Heavy SPAs** (Mailchimp): `page.goto(..., {waitUntil:"domcontentloaded"})` (`load` never settles). Hidden PDF links → `waitFor(..., "attached")`.
