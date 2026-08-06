@@ -11,11 +11,9 @@ description: |
 
 - **Reduck MCP, with the browser extension installed.** If it isn't set up, follow the instructions at [start.reduck.ai](https://start.reduck.ai/).
 
-## Scripts
-
-- **`reduck/search.brave.com/search`** — read the index
-- **`reduck/search.brave.com/submit_url`** — ask Brave to re-fetch one URL
-- **`reduck/claude.ai/ask`** — ask Claude and see what its tools read
+- **`reduck/search.brave.com/search`**
+- **`reduck/search.brave.com/submit_url`**
+- **`reduck/claude.ai/ask`**
 
 Read their contracts live with `read_script` Reduck MCP.
 
