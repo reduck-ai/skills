@@ -5,115 +5,17 @@
     "email": "hello@reduck.ai"
   },
   "metadata": {
-    "description": "Reduck skills — the generalist CLI base plus lead-gen, product-research, ops, social and GEO verticals.",
-    "version": "0.8.0"
+    "description": "Reduck skills — agent playbooks that drive the Reduck MCP's script catalogue.",
+    "version": "0.9.0"
   },
   "plugins": [
     {
-      "name": "reduck",
-      "description": "Drive the Reduck CLI to perform web tasks (scrape, search, log in, fetch SPA, paginate site-search) as function calls. REQUIRED base for the lead-gen and product-research verticals — install this first.",
+      "name": "geo-brave",
+      "description": "Find out why an LLM never cites your site, and what to do about it. Harvests the queries Claude actually searches, then reads Brave's index — the substrate behind its web_search — to separate unreadable from unindexed from merely outranked, and picks the lever.",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/reduck"
-      ]
-    },
-    {
-      "name": "linkedin-leads",
-      "description": "Prospect and qualify leads from LinkedIn activity (post reactors → enriched profiles/companies). Needs the reduck base plugin.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/lead-gen/linkedin/leads"
-      ]
-    },
-    {
-      "name": "facebook-leads",
-      "description": "Prospect and qualify leads from Facebook Group/Page activity (members, commenters, top posts). Needs the reduck base plugin.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/lead-gen/facebook/leads"
-      ]
-    },
-    {
-      "name": "amazon-research",
-      "description": "Amazon US product research: search/price, full listing + reviews, category watch. Needs the reduck base plugin.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/product-research/amazon/research"
-      ]
-    },
-    {
-      "name": "saas-invoices",
-      "description": "Fetch and download invoices for paid SaaS: one list_invoices script per host returns each invoice URL, then a generic step downloads the PDF. Needs the reduck base plugin.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/ops/billing/invoices"
-      ]
-    },
-    {
-      "name": "instagram",
-      "description": "Read and act on Instagram: profiles, posts/reels, comments, follower lists, feed, DMs — and, on approval, DM/comment/follow. Needs the reduck base plugin.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/social/instagram/engage"
-      ]
-    },
-    {
-      "name": "reddit",
-      "description": "Read, search, and act on Reddit: trending, subreddit threads, full threads, topic search, pain-point mining — and, on approval, post/comment/vote/DM. Needs the reduck base plugin.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/social/reddit/engage"
-      ]
-    },
-    {
-      "name": "twitter",
-      "description": "Read, search, and act on Twitter/X: public scraping via xcancel.com (no login) plus authenticated reads and, on approval, post/reply/quote/retweet/DM on x.com. Needs the reduck base plugin.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/social/twitter/engage"
-      ]
-    },
-    {
-      "name": "geo_brave",
-      "description": "Find out why an LLM never cites your site, and what to do about it. Harvests the queries Claude actually searches, then reads Brave's index — the substrate behind its web_search — to separate unreadable from unindexed from merely outranked, and picks the lever. Standalone: uses the Reduck MCP, so it does NOT need the reduck CLI base plugin.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/geo_brave"
-      ]
-    },
-    {
-      "name": "use-case-skills",
-      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research, saas-invoices, instagram, reddit, twitter, geo_brave). All need the reduck base plugin except geo_brave, which is standalone. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/lead-gen/linkedin/leads",
-        "./skills/lead-gen/facebook/leads",
-        "./skills/product-research/amazon/research",
-        "./skills/ops/billing/invoices",
-        "./skills/social/instagram/engage",
-        "./skills/social/reddit/engage",
-        "./skills/social/twitter/engage",
-        "./skills/geo_brave"
-      ]
-    },
-    {
-      "name": "required",
-      "description": "The reduck base skill on its own — install this first. (Also the \"Required\" group in the skills CLI picker.)",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./",
-        "./skills/reduck"
+        "./skills/geo-brave"
       ]
     }
   ]

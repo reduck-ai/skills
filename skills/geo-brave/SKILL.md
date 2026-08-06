@@ -1,5 +1,5 @@
 ---
-name: geo_brave
+name: geo-brave
 description: |
     Brave Search's optimization — the substrate behind Claude's web_search —
     and how to diagnose whether a domain is in it. Use for GEO/AEO work: "why don't we
@@ -205,7 +205,3 @@ Not one of their own pages was retrieved in either case.
 
 Which means the boilerplate in someone else's announcement is how the model describes you.
 Write that sentence deliberately.
-
-
-
-# Re usable code snippets

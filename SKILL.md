@@ -1,1 +1,0 @@
-skills/reduck/SKILL.md

@@ -1,114 +1,96 @@
 # reduck-skills
 
-Agent Skill that teaches any compatible coding agent (Claude Code, Codex, Cursor, OpenCode, …) to drive the [Reduck](https://reduck.dev) CLI as a function: discover a method, call it, read the records back.
+Agent skills that drive the [Reduck](https://reduck.ai) MCP — a catalogue of saved browser
+automations, addressed as `reduck/<host>/<slug>` and run on a browser you paired through the
+Reduck extension.
 
-Reduck runs web automations from the terminal — scraping, structured extraction, logging into sites and pulling messages, SPA-aware fetches, paginated Google site-search. The default LLM failure mode is to chat with it instead of treating it as a function call. This skill corrects for that.
+A skill here is a playbook, not an automation: it names the scripts worth chaining for a job and
+the order to chain them in. The scripts' own contracts stay in the catalogue, read live with
+`read_script`, so a skill never goes stale on argument names.
 
-## Skills in this repo
+## Skills
 
-This repo is a small catalogue. The generalist `reduck` skill is the base; the
-lead-gen, product-research, ops and social verticals build on it.
+| Skill | What it does |
+| --- | --- |
+| [`geo-brave`](skills/geo-brave) | Why an LLM never cites your site, and which lever fixes it — harvests the queries Claude actually searches, then reads Brave's index to separate unreadable from unindexed from merely outranked. |
 
-```
-SKILL.md                          # → skills/reduck/SKILL.md (the default install)
-skills/
-├── reduck/                       # generalist — REQUIRED base for the verticals
-├── lead-gen/
-│   ├── linkedin/leads/           # linkedin-leads
-│   └── facebook/leads/           # facebook-leads
-├── product-research/
-│   └── amazon/research/          # amazon-research
-├── ops/
-│   └── billing/invoices/         # saas-invoices
-├── social/
-│   ├── instagram/engage/         # instagram
-│   ├── reddit/engage/            # reddit
-│   └── twitter/engage/           # twitter
-└── geo_brave/                    # geo_brave — standalone, MCP-based, no reduck base needed
-```
-
-The repo-root `SKILL.md` is the generalist `reduck` skill, so the
-[skills CLI](https://skills.sh) installs **just `reduck` by default**. The
-verticals are opt-in: pass `--full-depth` (or `--skill <name> --full-depth`) to
-discover them, or install them individually via the Claude Code marketplace below.
-
-## Install
-
-### Any agent — via the skills CLI
-
-```bash
-# Default — installs just the reduck base skill
-npx skills add reduck-ai/skills
-
-# See the verticals too (they live below the root SKILL.md, so need --full-depth).
-# The picker groups them: "Required" (reduck) first, then "Use Case Skills".
-npx skills add reduck-ai/skills --list --full-depth
-
-# Install a vertical. The verticals need the reduck base AND --full-depth to be
-# discovered (repeat --skill — a comma-separated list is NOT parsed as multiple):
-npx skills add reduck-ai/skills --full-depth --skill reduck --skill facebook-leads
-npx skills add reduck-ai/skills --full-depth --skill reduck --skill linkedin-leads
-npx skills add reduck-ai/skills --full-depth --skill reduck --skill saas-invoices
-
-# geo_brave is standalone — it drives the Reduck MCP, not the CLI, so it needs no base
-npx skills add reduck-ai/skills --full-depth --skill geo_brave
-
-# Everything in one go
-npx skills add reduck-ai/skills --full-depth --skill '*'
-
-# Try a skill's prompt without installing it
-npx skills use reduck-ai/skills@facebook-leads
-```
-
-Note: inside a coding agent (or with `-y`) the CLI is non-interactive. With the
-root `SKILL.md` present it installs **just `reduck`** by default; add `--full-depth`
-to pull the verticals. The `reduck` skill is the REQUIRED base — the verticals
-assume it is present for the bridge lifecycle and how to run a script.
-
-Manual install — copy or clone the skill's `SKILL.md` into your agent's skills
-directory, e.g. `~/.claude/skills/facebook-leads/SKILL.md`.
-
-### Claude Code — via the plugin marketplace
-
-This repo is also a Claude Code [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces).
-Inside Claude Code:
-
-```
-/plugin marketplace add reduck-ai/skills
-/plugin install reduck@reduck-skills          # the REQUIRED base, on its own
-/plugin install linkedin-leads@reduck-skills  # + only the verticals you want
-```
-
-Install is granular — one plugin per skill, so you only load the descriptions you
-use (an unused skill still costs context). The verticals (`linkedin-leads`,
-`facebook-leads`, `amazon-research`, `saas-invoices`, `instagram`, `reddit`,
-`twitter`) assume the `reduck` base is installed; there
-is no auto-dependency, so install `reduck` alongside any vertical. The exception is
-`geo_brave`, which drives the Reduck MCP rather than the CLI and installs on its own:
-
-```
-/plugin install geo_brave@reduck-skills       # standalone, no base required
-```
-
-Prefer one command for everything? Use the convenience bundle:
-
-```
-/plugin install required@reduck-skills         # just the reduck base
-/plugin install use-case-skills@reduck-skills  # all verticals
-```
-
-`/plugin marketplace update` pulls future changes.
+More are being migrated to this layout; they land as sibling directories under `skills/`.
 
 ## Prerequisites
 
+1. Install the Reduck browser extension and pair a browser — [start.reduck.ai](https://start.reduck.ai/).
+2. Connect the Reduck MCP to your agent.
+
+Scripts run on your paired browser, so a script marked `loggedIn` acts as whatever account is
+signed in there. There is nothing else to configure.
+
+## Install
+
+Any agent, via the [skills CLI](https://skills.sh):
+
 ```bash
-npx -y @reduck-ai/cli@latest login   # OAuth PKCE, opens a browser
-npx -y @reduck-ai/cli@latest local   # start the bridge to your browser; hand its wss:// URL to the MCP
+npx skills add reduck-ai/skills --list          # see what's here
+npx skills add reduck-ai/skills --skill geo-brave
+npx skills add reduck-ai/skills --skill '*'     # everything
+npx skills use reduck-ai/skills@geo-brave       # try one without installing
 ```
 
-The bridge is a machine-wide singleton — one `reduck local` serves any number of
-concurrent consumers, each its own fresh Chrome, so no per-device selection is
-needed. Target another MCP (staging, a local dev server) with `REDUCK_MCP_URL`.
+Claude Code, via the [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces):
+
+```
+/plugin marketplace add reduck-ai/skills
+/plugin install geo-brave@reduck-skills
+```
+
+`/plugin marketplace update` pulls later changes.
+
+For an agent that takes neither, `scripts/build-skill-zips.sh` writes one uploadable zip per
+skill into `dist/` (e.g. for Claude Desktop's Settings → Capabilities → Skills → Upload).
+
+Manual install: copy a skill's directory into your agent's skills directory, e.g.
+`~/.claude/skills/geo-brave/`.
+
+## Adding a skill
+
+One directory per skill, one level deep: `skills/<name>/SKILL.md`, where `<name>` is
+lowercase-hyphenated and matches the `name` in the frontmatter. Nothing nests — a flat catalogue
+is what makes the CLI find every skill without `--full-depth`.
+
+The shape:
+
+```markdown
+---
+name: <matches the directory>
+description: |
+    What it does and when to use it, in the words someone would ask for it.
+    Close with a NOT-for clause — the neighbouring job it should not be used for.
+---
+
+# Requirements
+
+- **Reduck MCP, with the browser extension installed.** If it isn't set up, follow the instructions at [start.reduck.ai](https://start.reduck.ai/).
+
+- **`reduck/<host>/<slug>`**
+- **`reduck/<host>/<slug>`**
+
+Read their contracts live with `read_script` Reduck MCP.
+
+# <the method>
+
+Why the flow is the way it is, then the flow.
+```
+
+Two rules keep these from rotting:
+
+- **Addresses only in `# Requirements`.** No argument lists, no output fields — `read_script`
+  answers those live, and a copy in prose is a copy that drifts. Verify every address exists
+  (`list_scripts handle:"official" host:"<host>"`) before you commit it.
+- **Keep what changes behavior.** A gotcha earns its place if it changes what the agent does:
+  an approval gate before a write, a run-them-one-at-a-time constraint, a key that must be
+  resolved rather than guessed.
+
+Then add the skill to `.claude-plugin/marketplace.json` (one entry, `"skills": ["./skills/<name>"]`)
+and to the table above.
 
 ## License
 
