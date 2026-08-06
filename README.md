@@ -1,33 +1,25 @@
 # reduck-skills
 
-Agent skills that drive the [Reduck](https://reduck.ai) MCP — a catalogue of saved browser
-automations, addressed as `reduck/<host>/<slug>` and run on a browser you paired through the
-Reduck extension.
+Catalogue of Skills to teach your Agent to automate complex tasks on a browser, from optimizing your product visibility when asking Claude to finding leads on LinkedIn.
 
-A skill here is a playbook, not an automation: it names the scripts worth chaining for a job and
-the order to chain them in. The scripts' own contracts stay in the catalogue, read live with
-`read_script`, so a skill never goes stale on argument names.
+Skills use [Reduck](https://reduck.ai) MCP which allows agents to discover, run and create browser automation scripts that serve as tools. Scripts run in your own Chrome, through our extension, which allows your agent to work where you are logged in — no credentials exposure, and same fingerprints so no bot detection. 
 
 ## Skills
 
 | Skill | What it does |
 | --- | --- |
+| [`geo-brave`](skills/geo-brave) | Why an LLM never cites your site, and which lever fixes it — harvests the queries Claude actually searches, then reads Brave's index to separate unreadable from unindexed from merely outranked. |
+| [`saas-invoices`](skills/saas-invoices) | Fetch and download invoices for paid SaaS — list them per vendor, then route the PDF download on the invoice URL's domain. |
 | [`amazon-research`](skills/amazon-research) | Amazon US product research — search and price, listing plus review analysis, and category scans for high-demand / poorly-rated openings. |
 | [`facebook-leads`](skills/facebook-leads) | Prospect and qualify leads from Facebook Group and Page activity — live communities, top threads, commenters and members. |
-| [`geo-brave`](skills/geo-brave) | Why an LLM never cites your site, and which lever fixes it — harvests the queries Claude actually searches, then reads Brave's index to separate unreadable from unindexed from merely outranked. |
 | [`instagram`](skills/instagram) | Read and act on Instagram — search, profiles, posts, reels, comments, follower lists, DMs, and publishing on approval. |
 | [`linkedin-leads`](skills/linkedin-leads) | Prospect, qualify and act on LinkedIn leads — seed from posts or criteria, enrich the shortlist, find warm introductions, reach out on approval. |
 | [`reddit`](skills/reddit) | Read, search and act on Reddit — trending, threads, topic search, pain-point mining, and posting or commenting on approval. |
-| [`saas-invoices`](skills/saas-invoices) | Fetch and download invoices for paid SaaS — list them per vendor, then route the PDF download on the invoice URL's domain. |
 | [`twitter`](skills/twitter) | Read, search and act on Twitter/X — profiles, search, conversations, reposters, DMs, analytics, and posting on approval. |
 
 ## Prerequisites
 
-1. Install the Reduck browser extension and pair a browser — [start.reduck.ai](https://start.reduck.ai/).
-2. Connect the Reduck MCP to your agent.
-
-Scripts run on your paired browser, so a script marked `loggedIn` acts as whatever account is
-signed in there. There is nothing else to configure.
+Follow the instructions at [start.reduck.ai](https://start.reduck.ai/) to pair your extension and connect Reduck MCP to your agent.
 
 ## Install
 
@@ -55,7 +47,7 @@ skill into `dist/` (e.g. for Claude Desktop's Settings → Capabilities → Skil
 Manual install: copy a skill's directory into your agent's skills directory, e.g.
 `~/.claude/skills/geo-brave/`.
 
-## Adding a skill
+## Contributing a skill
 
 One directory per skill, one level deep: `skills/<name>/SKILL.md`, where `<name>` is
 lowercase-hyphenated and matches the `name` in the frontmatter. Nothing nests — a flat catalogue
