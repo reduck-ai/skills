@@ -37,6 +37,15 @@
       ]
     },
     {
+      "name": "instagram",
+      "description": "Read and act on Instagram: search accounts and hashtags, profiles, posts, reels, stories, comments, follower lists, feed and DMs \u2014 and, on approval, publish, comment, like, DM or follow.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/instagram"
+      ]
+    },
+    {
       "name": "linkedin-leads",
       "description": "Prospect, qualify and act on LinkedIn leads: seed from posts, people or company search, enrich the shortlist, find warm introductions, and reach out on approval.",
       "source": "./",
