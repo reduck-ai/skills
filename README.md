@@ -1,21 +1,16 @@
-# reduck-skills
+# Reduck Agents
 
-Catalogue of Skills to teach your Agent to automate complex tasks on a browser, from optimizing your product visibility when asking Claude to finding leads on LinkedIn.
+This is a repository of reference agents, which package skills and [Reduck](https://reduck.ai) MCP, to perform complex tasks, from optimizing your GEO with Reduck GEO to doing your invoices with Reduck Invoices. 
 
-Skills use [Reduck](https://reduck.ai) MCP which allows agents to discover, run and create browser automation scripts that serve as tools. Scripts run in your own Chrome, through our extension, which allows your agent to work where you are logged in — no credentials exposure, and same fingerprints so no bot detection. 
+Reduck MCP allows agents to discover, run and create browser automation scripts that serve as tools. Scripts run in your own Chrome, through our extension, which allows your agent to work where you are logged in — no credentials exposure, and same fingerprints so no bot detection.  
 
-## Skills
+## Agents
 
 | Skill | What it does |
 | --- | --- |
-| [`geo-brave`](skills/geo-brave) | Get your site cited by Claude — see which queries it searches, check how you show up in Brave (the index behind its web search), and fix what's holding you back. |
-| [`saas-invoices`](skills/saas-invoices) | Fetch and download invoices for paid SaaS — list them per vendor, then route the PDF download on the invoice URL's domain. |
-| [`amazon-research`](skills/amazon-research) | Amazon US product research — search and price, listing plus review analysis, and category scans for high-demand / poorly-rated openings. |
-| [`facebook-leads`](skills/facebook-leads) | Prospect and qualify leads from Facebook Group and Page activity — live communities, top threads, commenters and members. |
-| [`instagram`](skills/instagram) | Read and act on Instagram — search, profiles, posts, reels, comments, follower lists, DMs, and publishing on approval. |
-| [`linkedin-leads`](skills/linkedin-leads) | Prospect, qualify and act on LinkedIn leads — seed from posts or criteria, enrich the shortlist, find warm introductions, reach out on approval. |
-| [`reddit`](skills/reddit) | Read, search and act on Reddit — trending, threads, topic search, pain-point mining, and posting or commenting on approval. |
-| [`twitter`](skills/twitter) | Read, search and act on Twitter/X — profiles, search, conversations, reposters, DMs, analytics, and posting on approval. |
+| [`reduck-geo`](skills/geo-brave) | Get your site cited by Claude — see which queries it searches, check how you show up in Brave (the index behind its web search), and fix what's holding you back. |
+| [`reduck-invoices`](skills/saas-invoices) | Fetch and download invoices for paid SaaS — list them per vendor, then route the PDF download on the invoice URL's domain. |
+
 
 ## Prerequisites
 
