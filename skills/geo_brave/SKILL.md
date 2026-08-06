@@ -63,18 +63,8 @@ Brave has never published a ranking-signal document. Two sources, descending in 
   Consequence: **the recall phase is keyword matching over indexed text.** A page with no
   indexed body text cannot enter the candidate set at any price.
 
-## The levers — this is the complete list
 
-There is no Brave webmaster console: no ownership verification, no coverage report, no
-crawl stats, no sitemap ping, no IndexNow.
 
-- [search.brave.com/submit-url](https://search.brave.com/submit-url) — one URL, request a
-  re-fetch. The only inclusion lever. No login, no confirmation, no status.
-- `noindex` + a submit-url re-fetch — delisting.
-- not-found@brave.com — dead links.
-- [Right To Be Forgotten](https://search.brave.com/help/brave-search-index-right-to-be-forgotten) — personal data. Legal process, not a GEO lever.
-
-Removal is thoroughly documented; inclusion is one text box. Plan accordingly.
 
 ## Requirements
 
