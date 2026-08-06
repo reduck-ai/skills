@@ -1,0 +1,217 @@
+---
+name: geo_brave
+description: |
+    Ground truth on Brave Search's index — the substrate behind Claude's web_search —
+    and how to diagnose whether a domain is in it. Use for GEO/AEO work: "why don't we
+    show up in Claude", "are we indexed", "optimize for AI search visibility",
+    "get cited by LLMs". NOT for Google SEO (different index, different levers).
+---
+
+# GEO on Brave
+
+First principle: **an LLM can only cite what its search tool retrieves.** Retrieval
+requires being in the index, with readable content. Everything below is either sourced
+to an official Brave page or to an experiment run on 2026-08-05 (index diagnosis) or
+2026-08-06 (scripts, and the Claude/Brave overlap test); nothing is inferred without
+being labelled as such.
+
+## What is established
+
+- **Brave's index is independent** — not Bing, not Google.
+  Proof: [search.brave.com/help](https://search.brave.com/help) — "built on its own
+  independent search index. It doesn't rely on Big Tech companies like Bing".
+- **Scale and refresh: ~40B pages, >100M pages added or refreshed per day.**
+  Proof: [brave.com/blog/search-api-growth](https://brave.com/blog/search-api-growth/)
+  (Feb 2026). Older figure on [brave.com/search/api](https://brave.com/search/api/):
+  "over 30 billion pages… over 100 million page updates every day".
+  Arithmetic: 100M/40B = **0.25% of the index per day**, a ~400-day average round trip.
+  So refresh is sharply prioritized — the long tail is effectively never re-fetched, and
+  a manual submit is the only lever a site owner has over its own page.
+- **The crawler has no distinguishing user agent, deliberately.**
+  Proof: [Brave Search Crawler](https://search.brave.com/help/brave-search-crawler) —
+  "does not advertise a differentiated user agent because we must avoid discrimination
+  from websites that allow only Google to crawl them".
+  Consequence: it is invisible in your logs, and **it can never appear on any
+  verified-bot allowlist** (Cloudflare, Vercel, Akamai). To a bot-protection product it
+  looks exactly like the traffic being challenged. This is the single most important
+  fact in this file.
+- **Googlebot crawlability is a hard precondition.**
+  Proof: same page — "if a domain or page is not crawlable by Googlebot, then Brave
+  Search's bot will not crawl it either". Your `Googlebot` rules govern Brave.
+- **`robots.txt` does not control indexing; `noindex` does, and only after a re-fetch.**
+  Proof: same page — "robots.txt is not used to prevent a page from being indexed…
+  Brave needs to re-fetch it in order to apply the changes".
+- **Discovery is crawler + Web Discovery Project (WDP)**, an opt-in, off-by-default
+  telemetry stream from Brave browser users.
+  Proof: same page, and [WDP help](https://support.brave.app/hc/en-us/articles/4409406835469-What-is-the-Web-Discovery-Project).
+
+## Ranking: what Brave actually discloses
+
+Brave has never published a ranking-signal document. Two sources, descending in value:
+
+- **The closest thing to a signal list is the WDP help page**, stating what Brave needs
+  in order to rank relevantly: keyword match (exact words, parts, synonyms); how recent
+  searches are; **how often a result is clicked for a keyword**; keyword popularity;
+  **what pages are popular or novel**; which sites only allow Googlebot.
+  Proof: [WDP help page](https://support.brave.app/hc/en-us/articles/4409406835469-What-is-the-Web-Discovery-Project).
+  Read the omission as data: **backlinks, domain authority, and link-graph signals are
+  named nowhere** — not there, not in Brave's own paper, not in the API docs.
+- **Retrieval architecture, from Brave's own paper:** a **recall phase** matching the
+  query against billions of pages with "simple features", cutting to a candidate set
+  "typically in the order of few thousands"; then **precision phases** with "increasingly
+  sophisticated and costly models"; final ranking over a very small set.
+  Proof: [goggles.pdf](https://brave.com/static-assets/files/goggles.pdf) §4.
+  Consequence: **the recall phase is keyword matching over indexed text.** A page with no
+  indexed body text cannot enter the candidate set at any price.
+
+## The levers — this is the complete list
+
+There is no Brave webmaster console: no ownership verification, no coverage report, no
+crawl stats, no sitemap ping, no IndexNow.
+
+- [search.brave.com/submit-url](https://search.brave.com/submit-url) — one URL, re-fetch.
+  Verified 2026-08-05: a single input box, "Insert the URL to be re-fetched". No login,
+  no confirmation, no status.
+- `noindex` + a submit-url re-fetch — delisting.
+- not-found@brave.com — dead links.
+- [Right To Be Forgotten](https://search.brave.com/help/brave-search-index-right-to-be-forgotten) — personal data. Legal process, not a GEO lever.
+- [Brave Search API](https://brave.com/search/api/) — $5/1k requests, $5/mo free credits.
+  The only programmatic way to monitor your own indexation.
+
+Removal is thoroughly documented; inclusion is one text box. Plan accordingly.
+
+## Scripts
+
+Two Reduck scripts cover both affordances — one reads the index, one writes to it. Nothing
+else on search.brave.com is load-bearing for GEO.
+
+- **`reduck/search.brave.com/search`** — read the index (`site:` queries, `offset` paging).
+- **`reduck/search.brave.com/submit_url`** — request a re-fetch of one URL.
+
+Their contracts carry the args, return shapes and caveats — read them live, don't trust a
+copy:
+
+```bash
+curl "https://mcp.reduck.ai/scripts/search.brave.com/search?handle=reduck" \
+  -H "X-API-Key: $REDUCK_API_KEY"
+curl "https://mcp.reduck.ai/scripts/search.brave.com/submit_url?handle=reduck" \
+  -H "X-API-Key: $REDUCK_API_KEY"
+```
+
+## Diagnosing a domain
+
+Run `site:example.com` on search.brave.com and read **two** signals:
+
+1. **URL present** → Brave knows the page exists.
+2. **Description present** → Brave actually fetched and read it.
+
+A result reading **"We cannot provide a description for this page right now"** means
+**URL-known, content-unread**. That page has no body text in the index, so it cannot
+survive the recall phase. This is the diagnostic that matters, and it is invisible if you
+only count results.
+
+Then contrast against `site:example.com` on Google. Google indexed but Brave blank
+isolates the cause to crawler access, not content.
+
+Operator caveat, proven: `site:X OR site:Y` returned **"search operators were not
+applied"** on 2026-08-05. Brave's own page calls operators "experimental and in the early
+stage of development" ([operators](https://search.brave.com/help/operators)).
+**Run one `site:` per query.**
+
+## Worked case: reduck.ai, 2026-08-05
+
+- **Brave `site:reduck.ai` → exactly one result**: the homepage, title only,
+  "We cannot provide a description for this page right now", pager greyed out.
+  `site:reduck.ai/docs` and `site:docs.reduck.ai` → nothing.
+- **Google `site:reduck.ai`** → homepage with a full snippet, plus `/pricing`,
+  `trust.reduck.ai`, `start.reduck.ai`, and more.
+- **Brave indexes Reduck content, just not from reduck.ai.** A plain `reduck` query
+  surfaces, with proper descriptions, the Chrome Web Store listing and
+  `@reduck-ai/cli` on npm. Third-party surfaces out-describe the owned domain.
+- **Cause — a Vercel bot challenge.** Real Chrome hitting `reduck.ai/robots.txt` first
+  got **"Vercel Security Checkpoint — We're verifying your browser"**, revealing the file
+  only after the JS challenge resolved. Every non-browser client got `HTTP 429` plus the
+  checkpoint page, on `/`, `/robots.txt` **and** `/sitemap.xml`:
+
+  ```
+  Googlebot UA   /  /robots.txt  /sitemap.xml   HTTP 429  << VERCEL CHECKPOINT
+  curl/8.0       /  /robots.txt  /sitemap.xml   HTTP 429  << VERCEL CHECKPOINT
+  Chrome UA      /  /robots.txt  /sitemap.xml   HTTP 429  << VERCEL CHECKPOINT
+  ```
+
+- The `robots.txt` itself is correct (`Disallow` only on `/dashboard`, `/sessions`,
+  `/devices`, `/api-keys`, `/admin`, `/api/`, `/signin`, `/oauth/`; sitemap declared).
+  **The file is fine; it is unreachable.**
+- **Honest limits of that experiment:** the Googlebot-UA row came from a residential IP,
+  which real reverse-DNS verification rejects — it does *not* show real Googlebot being
+  blocked, and Google's index proves it isn't. The `429` may partly reflect the test's own
+  request volume. Neither weakens the conclusion: the Brave index state was observed
+  before any of the curl traffic, and an unidentifiable crawler cannot be allowlisted.
+
+## The rule this yields
+
+> Bot protection on a public marketing or docs surface is a GEO kill switch.
+> Googlebot survives it via verified-bot allowlisting. Brave, having no user agent to
+> allowlist, cannot. Result: URL indexed, content blank, permanently unretrievable.
+
+**So the first GEO action on any domain is never content — it is confirming a crawler can
+read the page.** Check `site:` for descriptions, and check what a plain HTTP client gets.
+Content and phrasing work is wasted spend until that passes.
+
+## Is Claude's web_search Brave-backed? Experiment, 2026-08-06
+
+Method: ask a question via `reduck/claude.ai/ask`, read the `webSearchQueries` and
+`sources` it returns (the candidate pool, not just cited sources), then replay each query
+verbatim on Brave and — as a control — on Google.
+
+**Result: 32 of 32 of Claude's sources appeared in Brave's first page. Zero misses.**
+
+| Claude's query | sources | in Brave | in Google |
+|---|---|---|---|
+| `Claude LinkedIn Sales Navigator integration MCP connector` | 8 | 8/8 (top 20) | 6/8 (top ~28) |
+| `best MCP servers browser automation 2026` | 8 | 8/8 (top 8) | 5/8 (top 9) |
+| `chrome-devtools-mcp vs playwright mcp browser automation comparison` | 7 | 7/7 (top 12) | not run |
+| `AI agent automatically download invoices from vendor portals` | 9 | 9/9 (top 13) | not run |
+
+Strongest single datapoint: for `best MCP servers browser automation 2026`, Claude's 8
+sources were **exactly Brave's top 8 as a set** — same eight URLs, reordered. Google's top
+9 for that query included `daily.dev`, `skillsllm` and `medium.com`, none of which Claude
+saw, and a *different* unbrowse.ai URL than the one Claude read.
+
+**Status: strong behavioral evidence, not documentary proof.** No Anthropic or Brave
+statement names the other; Brave's [blog](https://brave.com/blog/search-api-growth/) claims
+its API supplies "most of the top-10 LLMs" but names no customer.
+[trust.anthropic.com/subprocessors](https://trust.anthropic.com/subprocessors) is
+JS-rendered and was not read. What lifts this above coincidence is the asymmetry against
+the Google control plus the exact set match — and that Brave was queried from a different
+IP and session than Anthropic's, which should have added noise and did not.
+
+### Observed behaviour of the layer on top of Brave
+
+- Takes a **contiguous slice of Brave's head**, roughly top 8–13. Never anything deep.
+  A page at Brave position ~12+ was never in the pool.
+- **Reorders** — Claude's source order never matched Brave's rank order.
+- **Filters inconsistently.** On the LinkedIn query it dropped every directory and GitHub
+  result and kept prose articles. On the devtools query it took only one of two
+  `stevekinney.com` and one of two `vibebrowser.app` pages. But on the invoice query it
+  took **both** `glideapps.com` URLs — so per-domain dedup is not a fixed rule.
+
+### Consequences for GEO
+
+- **Claude searches its own reformulation, not the user's words.** "How to use Claude with
+  LinkedIn Sales Navigator?" became `Claude LinkedIn Sales Navigator integration MCP
+  connector`. Reformulations were keyword-dense, tool-named, often year-stamped (`2026`).
+  Those are the keywords that matter, and `ask` surfaces them directly via
+  `webSearchQueries` — a free keyword-research instrument aimed at Brave.
+- **Fan-out is wide but shallow**: one question produced up to 5 queries and 43 sources,
+  yet each query only reached ~10 URLs deep.
+- **Not every question searches.** "How can an AI agent automate filling out forms on
+  legacy web portals?" returned `webSearchQueries: []` — answered from parametric
+  knowledge. Generic how-to questions may never trigger retrieval; specific, current,
+  comparative or vendor-named ones did.
+- **reduck.ai appeared in 0 of the 32 sources**, across three questions squarely in its
+  category. Competitors did. Claude named Reduck in every answer only because it was a
+  connected tool in the session, never from a search result.
+
+The crawler-access finding above is independent of this and holds for **every** engine
+whose crawler cannot be allowlisted.
