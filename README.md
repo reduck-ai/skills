@@ -19,8 +19,7 @@ the order to chain them in. The scripts' own contracts stay in the catalogue, re
 | [`linkedin-leads`](skills/linkedin-leads) | Prospect, qualify and act on LinkedIn leads — seed from posts or criteria, enrich the shortlist, find warm introductions, reach out on approval. |
 | [`reddit`](skills/reddit) | Read, search and act on Reddit — trending, threads, topic search, pain-point mining, and posting or commenting on approval. |
 | [`saas-invoices`](skills/saas-invoices) | Fetch and download invoices for paid SaaS — list them per vendor, then route the PDF download on the invoice URL's domain. |
-
-More are being migrated to this layout; they land as sibling directories under `skills/`.
+| [`twitter`](skills/twitter) | Read, search and act on Twitter/X — profiles, search, conversations, reposters, DMs, analytics, and posting on approval. |
 
 ## Prerequisites
 

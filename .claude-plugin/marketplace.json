@@ -71,6 +71,15 @@
       "skills": [
         "./skills/saas-invoices"
       ]
+    },
+    {
+      "name": "twitter",
+      "description": "Read, search and act on Twitter/X: profiles, posts and replies, tweet search, conversations, reposters, follower lists, feed, mentions, DMs and analytics \u2014 and, on approval, post, reply, quote, retweet, like or DM.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/twitter"
+      ]
     }
   ]
 }
