@@ -1,84 +1,30 @@
 {
-  "name": "reduck-skills",
+  "name": "reduck-agents",
   "owner": {
     "name": "Reduck",
     "email": "hello@reduck.ai"
   },
   "metadata": {
-    "description": "Reduck skills \u2014 agent playbooks that drive the Reduck MCP's script catalogue.",
-    "version": "0.9.0"
+    "description": "Reduck Agents — reference agents that package skills and the Reduck MCP to perform complex tasks in your own browser.",
+    "version": "1.0.0"
   },
   "plugins": [
     {
-      "name": "amazon-research",
-      "description": "Amazon US product research: search and price, full listing plus review analysis, and category watch for high-demand / poorly-rated openings.",
+      "name": "reduck-geo",
+      "description": "Get your site cited by Claude. Shows which queries Claude searches, then checks Brave — the index behind its web search — to tell you whether your pages can be read, whether Brave has them at all, or whether they are simply ranked too low, and which one to fix first.",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/amazon-research"
+        "./skills/reduck-geo"
       ]
     },
     {
-      "name": "facebook-leads",
-      "description": "Prospect and qualify leads from Facebook Group and Page activity: find live communities, rank their posts, pull members and commenters, then qualify the promising ones.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/facebook-leads"
-      ]
-    },
-    {
-      "name": "geo-brave",
-      "description": "Get your site cited by Claude. Shows which queries Claude searches, then checks Brave \u2014 the index behind its web search \u2014 to tell you whether your pages can be read, whether Brave has them at all, or whether they are simply ranked too low, and which one to fix first.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/geo-brave"
-      ]
-    },
-    {
-      "name": "instagram",
-      "description": "Read and act on Instagram: search accounts and hashtags, profiles, posts, reels, stories, comments, follower lists, feed and DMs \u2014 and, on approval, publish, comment, like, DM or follow.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/instagram"
-      ]
-    },
-    {
-      "name": "linkedin-leads",
-      "description": "Prospect, qualify and act on LinkedIn leads: seed from posts, people or company search, enrich the shortlist, find warm introductions, and reach out on approval.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/linkedin-leads"
-      ]
-    },
-    {
-      "name": "reddit",
-      "description": "Read, search and act on Reddit: trending, subreddit threads, full threads, topic search, pain-point mining \u2014 and, on approval, post, comment, vote, join or DM.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/reddit"
-      ]
-    },
-    {
-      "name": "saas-invoices",
+      "name": "reduck-invoices",
       "description": "Fetch and download invoices for paid SaaS: a per-host list_invoices script returns each invoice URL, then a generic download step routed on the URL's domain fetches the PDF.",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/saas-invoices"
-      ]
-    },
-    {
-      "name": "twitter",
-      "description": "Read, search and act on Twitter/X: profiles, posts and replies, tweet search, conversations, reposters, follower lists, feed, mentions, DMs and analytics \u2014 and, on approval, post, reply, quote, retweet, like or DM.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/twitter"
+        "./skills/reduck-invoices"
       ]
     }
   ]

@@ -1,5 +1,5 @@
 ---
-name: geo-brave
+name: reduck-geo
 description: |
     Get a site cited by Claude, by working on Brave — the index behind Claude's
     web search — and finding out how the site stands in it. Use for GEO/AEO work: "why don't we

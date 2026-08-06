@@ -1,5 +1,5 @@
 ---
-name: saas-invoices
+name: reduck-invoices
 description: |
     Fetch and download invoices for paid SaaS. Use for the invoice or receipt PDF
     of one vendor, every invoice for one tool, or a sweep across all paid
