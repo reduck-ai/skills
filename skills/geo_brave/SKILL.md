@@ -1,7 +1,7 @@
 ---
 name: geo_brave
 description: |
-    Ground truth on Brave Search's index — the substrate behind Claude's web_search —
+    Brave Search's optimization — the substrate behind Claude's web_search —
     and how to diagnose whether a domain is in it. Use for GEO/AEO work: "why don't we
     show up in Claude", "are we indexed", "optimize for AI search visibility",
     "get cited by LLMs". NOT for Google SEO (different index, different levers).
@@ -10,10 +10,12 @@ description: |
 # GEO on Brave
 
 First principle: **an LLM can only cite what its search tool retrieves.** Retrieval
-requires being in the index, with readable content. Everything below is either sourced
-to an official Brave page or to an experiment run on 2026-08-05 (index diagnosis) or
-2026-08-06 (scripts, and the Claude/Brave overlap test); nothing is inferred without
-being labelled as such.
+requires being in the index, with readable content.
+
+Given a prompt p like "How to use Claude with LinkedIn", an AI Assistant can do web search queries q, which return results r = (url, description = summary(page)).
+The goal of GEO is to focus on a few p, observe the q, then try to optimize the content of the pages to:
+- Appear in the search results, primary goal
+- Convince the LLM that to mention one's product once present among the search results, secondary goal
 
 ## What is established
 
@@ -35,9 +37,6 @@ being labelled as such.
   verified-bot allowlist** (Cloudflare, Vercel, Akamai). To a bot-protection product it
   looks exactly like the traffic being challenged. This is the single most important
   fact in this file.
-- **Googlebot crawlability is a hard precondition.**
-  Proof: same page — "if a domain or page is not crawlable by Googlebot, then Brave
-  Search's bot will not crawl it either". Your `Googlebot` rules govern Brave.
 - **`robots.txt` does not control indexing; `noindex` does, and only after a re-fetch.**
   Proof: same page — "robots.txt is not used to prevent a page from being indexed…
   Brave needs to re-fetch it in order to apply the changes".
@@ -69,34 +68,56 @@ Brave has never published a ranking-signal document. Two sources, descending in 
 There is no Brave webmaster console: no ownership verification, no coverage report, no
 crawl stats, no sitemap ping, no IndexNow.
 
-- [search.brave.com/submit-url](https://search.brave.com/submit-url) — one URL, re-fetch.
-  Verified 2026-08-05: a single input box, "Insert the URL to be re-fetched". No login,
-  no confirmation, no status.
+- [search.brave.com/submit-url](https://search.brave.com/submit-url) — one URL, request a
+  re-fetch. The only inclusion lever. No login, no confirmation, no status.
 - `noindex` + a submit-url re-fetch — delisting.
 - not-found@brave.com — dead links.
 - [Right To Be Forgotten](https://search.brave.com/help/brave-search-index-right-to-be-forgotten) — personal data. Legal process, not a GEO lever.
-- [Brave Search API](https://brave.com/search/api/) — $5/1k requests, $5/mo free credits.
-  The only programmatic way to monitor your own indexation.
 
 Removal is thoroughly documented; inclusion is one text box. Plan accordingly.
 
+## Requirements
+
+- **Reduck MCP, with the browser extension installed.** If it isn't set up, follow the
+  instructions at [start.reduck.ai](https://start.reduck.ai/).
+
 ## Scripts
 
-Two Reduck scripts cover both affordances — one reads the index, one writes to it. Nothing
-else on search.brave.com is load-bearing for GEO.
+Three Reduck scripts cover the loop: one reads the index, one writes to it, one reads the
+outcome that actually matters.
 
 - **`reduck/search.brave.com/search`** — read the index (`site:` queries, `offset` paging).
 - **`reduck/search.brave.com/submit_url`** — request a re-fetch of one URL.
+- **`reduck/claude.ai/ask`** — ask Claude one question, read what its tools surfaced.
 
-Their contracts carry the args, return shapes and caveats — read them live, don't trust a
-copy:
+`ask` is what makes any of this measurable. Alongside the answer it returns
+`webSearchQueries` — the queries Claude actually issued — and `sources`: **the candidate
+pool its `web_search`/`web_fetch` surfaced, not only what the answer cites** (each entry
+tagged with which tool found it). That exposes the layer between prompt and answer that is
+otherwise invisible, and it is what turns "we weren't mentioned" into a located fault.
+`sources` is empty when no tool ran.
 
-```bash
-curl "https://mcp.reduck.ai/scripts/search.brave.com/search?handle=reduck" \
-  -H "X-API-Key: $REDUCK_API_KEY"
-curl "https://mcp.reduck.ai/scripts/search.brave.com/submit_url?handle=reduck" \
-  -H "X-API-Key: $REDUCK_API_KEY"
-```
+Read their contracts live with `read_script` rather than trusting a copy: they carry the
+args, return shapes and caveats.
+
+The two Brave scripts need no login. `ask` requires a signed-in claude.ai session — there
+is no anonymous chat; chain `reduck/claude.ai/login` if the session has lapsed. One
+IP-keyed rate limiter guards both Brave scripts, so a captcha means back off 30-60s rather
+than retrying. Each `ask` also creates a real conversation, so a wide sweep leaves clutter
+— `reduck/claude.ai/delete_chat` takes the `conversationId` values back out.
+
+## Reading a failure
+
+Run `ask` on a prompt you want to win, then attribute the miss to one stage:
+
+| Observation | Stage that failed | Read it as |
+|---|---|---|
+| `webSearchQueries: []` | Nothing was retrieved | Wrong prompt to target — answered from memory, no GEO lever applies |
+| Searched, you are absent from `sources` | Retrieval | Drop to the `site:` probe to split index vs rank |
+| Present in `sources`, absent from the answer | Selection | The only genuine content problem — you were read and passed over |
+
+**Judge yourself on `sources`, never on the prose.** A model naming your product because it
+is a connected tool in the session says nothing about discoverability.
 
 ## Diagnosing a domain
 
@@ -109,6 +130,12 @@ A result reading **"We cannot provide a description for this page right now"** m
 **URL-known, content-unread**. That page has no body text in the index, so it cannot
 survive the recall phase. This is the diagnostic that matters, and it is invisible if you
 only count results.
+
+Through the `search` script that state is a field, not a judgement call: the result comes
+back with **`snippet: null`**. Also check **`operatorsApplied`** — when it is `false` Brave
+dropped your `site:` and relaxed the query, so the results are soft-relevance and a real
+"not indexed" is indistinguishable from a filtered one. Treat that run as no data and
+retry, never as a negative.
 
 Then contrast against `site:example.com` on Google. Google indexed but Brave blank
 isolates the cause to crawler access, not content.
