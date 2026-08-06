@@ -12,6 +12,7 @@ the order to chain them in. The scripts' own contracts stay in the catalogue, re
 
 | Skill | What it does |
 | --- | --- |
+| [`amazon-research`](skills/amazon-research) | Amazon US product research — search and price, listing plus review analysis, and category scans for high-demand / poorly-rated openings. |
 | [`geo-brave`](skills/geo-brave) | Why an LLM never cites your site, and which lever fixes it — harvests the queries Claude actually searches, then reads Brave's index to separate unreadable from unindexed from merely outranked. |
 
 More are being migrated to this layout; they land as sibling directories under `skills/`.

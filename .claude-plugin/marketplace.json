@@ -10,6 +10,15 @@
   },
   "plugins": [
     {
+      "name": "amazon-research",
+      "description": "Amazon US product research: search and price, full listing plus review analysis, and category watch for high-demand / poorly-rated openings.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/amazon-research"
+      ]
+    },
+    {
       "name": "geo-brave",
       "description": "Find out why an LLM never cites your site, and what to do about it. Harvests the queries Claude actually searches, then reads Brave's index — the substrate behind its web_search — to separate unreadable from unindexed from merely outranked, and picks the lever.",
       "source": "./",
