@@ -5,7 +5,7 @@
     "email": "hello@reduck.ai"
   },
   "metadata": {
-    "description": "Reduck skills — agent playbooks that drive the Reduck MCP's script catalogue.",
+    "description": "Reduck skills \u2014 agent playbooks that drive the Reduck MCP's script catalogue.",
     "version": "0.9.0"
   },
   "plugins": [
@@ -29,11 +29,20 @@
     },
     {
       "name": "geo-brave",
-      "description": "Find out why an LLM never cites your site, and what to do about it. Harvests the queries Claude actually searches, then reads Brave's index — the substrate behind its web_search — to separate unreadable from unindexed from merely outranked, and picks the lever.",
+      "description": "Find out why an LLM never cites your site, and what to do about it. Harvests the queries Claude actually searches, then reads Brave's index \u2014 the substrate behind its web_search \u2014 to separate unreadable from unindexed from merely outranked, and picks the lever.",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/geo-brave"
+      ]
+    },
+    {
+      "name": "linkedin-leads",
+      "description": "Prospect, qualify and act on LinkedIn leads: seed from posts, people or company search, enrich the shortlist, find warm introductions, and reach out on approval.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/linkedin-leads"
       ]
     }
   ]
