@@ -20,10 +20,11 @@ skills/
 │   └── amazon/research/          # amazon-research
 ├── ops/
 │   └── billing/invoices/         # saas-invoices
-└── social/
-    ├── instagram/engage/         # instagram
-    ├── reddit/engage/            # reddit
-    └── twitter/engage/           # twitter
+├── social/
+│   ├── instagram/engage/         # instagram
+│   ├── reddit/engage/            # reddit
+│   └── twitter/engage/           # twitter
+└── geo_brave/                    # geo_brave — standalone, MCP-based, no reduck base needed
 ```
 
 The repo-root `SKILL.md` is the generalist `reduck` skill, so the
@@ -48,6 +49,9 @@ npx skills add reduck-ai/skills --list --full-depth
 npx skills add reduck-ai/skills --full-depth --skill reduck --skill facebook-leads
 npx skills add reduck-ai/skills --full-depth --skill reduck --skill linkedin-leads
 npx skills add reduck-ai/skills --full-depth --skill reduck --skill saas-invoices
+
+# geo_brave is standalone — it drives the Reduck MCP, not the CLI, so it needs no base
+npx skills add reduck-ai/skills --full-depth --skill geo_brave
 
 # Everything in one go
 npx skills add reduck-ai/skills --full-depth --skill '*'
@@ -79,8 +83,14 @@ Install is granular — one plugin per skill, so you only load the descriptions 
 use (an unused skill still costs context). The verticals (`linkedin-leads`,
 `facebook-leads`, `amazon-research`, `saas-invoices`, `instagram`, `reddit`,
 `twitter`) assume the `reduck` base is installed; there
-is no auto-dependency, so install `reduck` alongside any vertical. Prefer one
-command for everything? Use the convenience bundle:
+is no auto-dependency, so install `reduck` alongside any vertical. The exception is
+`geo_brave`, which drives the Reduck MCP rather than the CLI and installs on its own:
+
+```
+/plugin install geo_brave@reduck-skills       # standalone, no base required
+```
+
+Prefer one command for everything? Use the convenience bundle:
 
 ```
 /plugin install required@reduck-skills         # just the reduck base

@@ -5,8 +5,8 @@
     "email": "hello@reduck.ai"
   },
   "metadata": {
-    "description": "Reduck CLI skills — the generalist plus lead-gen, product-research, ops and social verticals.",
-    "version": "0.7.0"
+    "description": "Reduck skills — the generalist CLI base plus lead-gen, product-research, ops, social and GEO verticals.",
+    "version": "0.8.0"
   },
   "plugins": [
     {
@@ -82,8 +82,17 @@
       ]
     },
     {
+      "name": "geo_brave",
+      "description": "Find out why an LLM never cites your site, and what to do about it. Harvests the queries Claude actually searches, then reads Brave's index — the substrate behind its web_search — to separate unreadable from unindexed from merely outranked, and picks the lever. Standalone: uses the Reduck MCP, so it does NOT need the reduck CLI base plugin.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/geo_brave"
+      ]
+    },
+    {
       "name": "use-case-skills",
-      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research, saas-invoices, instagram, reddit, twitter). Needs the reduck base plugin. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
+      "description": "Convenience bundle — every vertical (linkedin-leads, facebook-leads, amazon-research, saas-invoices, instagram, reddit, twitter, geo_brave). All need the reduck base plugin except geo_brave, which is standalone. (Also the \"Use Case Skills\" group in the skills CLI picker.)",
       "source": "./",
       "strict": false,
       "skills": [
@@ -93,7 +102,8 @@
         "./skills/ops/billing/invoices",
         "./skills/social/instagram/engage",
         "./skills/social/reddit/engage",
-        "./skills/social/twitter/engage"
+        "./skills/social/twitter/engage",
+        "./skills/geo_brave"
       ]
     },
     {
