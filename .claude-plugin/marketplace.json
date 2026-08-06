@@ -19,6 +19,15 @@
       ]
     },
     {
+      "name": "facebook-leads",
+      "description": "Prospect and qualify leads from Facebook Group and Page activity: find live communities, rank their posts, pull members and commenters, then qualify the promising ones.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/facebook-leads"
+      ]
+    },
+    {
       "name": "geo-brave",
       "description": "Find out why an LLM never cites your site, and what to do about it. Harvests the queries Claude actually searches, then reads Brave's index — the substrate behind its web_search — to separate unreadable from unindexed from merely outranked, and picks the lever.",
       "source": "./",
