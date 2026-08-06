@@ -118,33 +118,37 @@ applied"** on 2026-08-05. Brave's own page calls operators "experimental and in 
 stage of development" ([operators](https://search.brave.com/help/operators)).
 **Run one `site:` per query.**
 
-## Worked case: reduck.ai, 2026-08-05
+## Worked case: a site behind a bot challenge
 
-- **Brave `site:reduck.ai` → exactly one result**: the homepage, title only,
-  "We cannot provide a description for this page right now", pager greyed out.
-  `site:reduck.ai/docs` and `site:docs.reduck.ai` → nothing.
-- **Google `site:reduck.ai`** → homepage with a full snippet, plus `/pricing`,
-  `trust.reduck.ai`, `start.reduck.ai`, and more.
-- **Brave indexes Reduck content, just not from reduck.ai.** A plain `reduck` query
-  surfaces, with proper descriptions, the Chrome Web Store listing and
-  `@reduck-ai/cli` on npm. Third-party surfaces out-describe the owned domain.
-- **Cause — a Vercel bot challenge.** Real Chrome hitting `reduck.ai/robots.txt` first
-  got **"Vercel Security Checkpoint — We're verifying your browser"**, revealing the file
-  only after the JS challenge resolved. Every non-browser client got `HTTP 429` plus the
+A real diagnosis, run 2026-08-05, generalised. The domain was a SaaS marketing site on
+Vercel with bot protection enabled. Symptoms, in the order the probes surface them:
+
+- **Brave `site:example.com` → exactly one result**: the homepage, title only,
+  "We cannot provide a description for this page right now", pager greyed out. Deeper
+  paths and subdomains → nothing.
+- **Google `site:example.com`** → homepage with a full snippet, plus `/pricing`, several
+  subdomains, and more. **This contrast is the whole diagnosis**: content that Google
+  reads and Brave cannot is an access problem, not a content problem.
+- **Brave indexed the product, just not the owned domain.** A plain brand-name query
+  surfaced the Chrome Web Store listing and the npm package with proper descriptions.
+  Third-party surfaces out-described the owned domain, because they sit on crawlable hosts.
+- **Cause — the bot challenge.** Real Chrome hitting `/robots.txt` first got
+  **"Vercel Security Checkpoint — We're verifying your browser"**, revealing the file only
+  after the JS challenge resolved. Every non-browser client got `HTTP 429` plus the
   checkpoint page, on `/`, `/robots.txt` **and** `/sitemap.xml`:
 
   ```
-  Googlebot UA   /  /robots.txt  /sitemap.xml   HTTP 429  << VERCEL CHECKPOINT
-  curl/8.0       /  /robots.txt  /sitemap.xml   HTTP 429  << VERCEL CHECKPOINT
-  Chrome UA      /  /robots.txt  /sitemap.xml   HTTP 429  << VERCEL CHECKPOINT
+  Googlebot UA   /  /robots.txt  /sitemap.xml   HTTP 429  << CHECKPOINT
+  curl/8.0       /  /robots.txt  /sitemap.xml   HTTP 429  << CHECKPOINT
+  Chrome UA      /  /robots.txt  /sitemap.xml   HTTP 429  << CHECKPOINT
   ```
 
-- The `robots.txt` itself is correct (`Disallow` only on `/dashboard`, `/sessions`,
-  `/devices`, `/api-keys`, `/admin`, `/api/`, `/signin`, `/oauth/`; sitemap declared).
-  **The file is fine; it is unreachable.**
+- The `robots.txt` itself was correct — only authenticated app routes disallowed, sitemap
+  declared. **The file was fine; it was unreachable.** A crawler that cannot read
+  `robots.txt` or `sitemap.xml` has no route in at all.
 - **Honest limits of that experiment:** the Googlebot-UA row came from a residential IP,
   which real reverse-DNS verification rejects — it does *not* show real Googlebot being
-  blocked, and Google's index proves it isn't. The `429` may partly reflect the test's own
+  blocked, and Google's index proved it wasn't. The `429` may partly reflect the test's own
   request volume. Neither weakens the conclusion: the Brave index state was observed
   before any of the curl traffic, and an unidentifiable crawler cannot be allowlisted.
 
@@ -209,9 +213,9 @@ IP and session than Anthropic's, which should have added noise and did not.
   legacy web portals?" returned `webSearchQueries: []` — answered from parametric
   knowledge. Generic how-to questions may never trigger retrieval; specific, current,
   comparative or vendor-named ones did.
-- **reduck.ai appeared in 0 of the 32 sources**, across three questions squarely in its
-  category. Competitors did. Claude named Reduck in every answer only because it was a
-  connected tool in the session, never from a search result.
+- **Being a connected tool in the session is not visibility.** A model naming your product
+  because it is loaded as a tool tells you nothing about discoverability. Only its presence
+  in `sources` does. Judge yourself on the candidate pool, never on the prose.
 
 The crawler-access finding above is independent of this and holds for **every** engine
 whose crawler cannot be allowlisted.
