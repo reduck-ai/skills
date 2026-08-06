@@ -44,6 +44,15 @@
       "skills": [
         "./skills/linkedin-leads"
       ]
+    },
+    {
+      "name": "reddit",
+      "description": "Read, search and act on Reddit: trending, subreddit threads, full threads, topic search, pain-point mining \u2014 and, on approval, post, comment, vote, join or DM.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/reddit"
+      ]
     }
   ]
 }
