@@ -67,6 +67,11 @@ Run `ask` on a prompt you want to win. Read three fields:
 - **sources** — every page its tools read, not only the ones the answer cites.
 - **answer** — what the user sees.
 
+**One `ask` is a single draw, not a measurement.** The model may reformulate differently, or not
+search at all, on the next run of the same prompt. Repeat a prompt before you conclude anything
+from it, and treat "it named us once" as weaker evidence than "it named us three times out of
+three".
+
 | What you see | Cause | What to do |
 | --- | --- | --- |
 | no queries | the prompt never triggers a search | pick a different prompt — nothing else can work |
@@ -97,7 +102,8 @@ searched, and only one of them contained them.
 crawler cannot read your page — and then no amount of writing helps — or it can, and you are
 simply not scored high enough. Find out which before spending anything.
 
-Three checks. The first two catch each other's mistakes, so never run one alone.
+Four checks. The first two catch each other's mistakes, so never run one alone; the fourth is
+only needed when you are about to act on a page looking absent.
 
 1. **Fetch your own URL with a plain HTTP client.** *Can* a crawler read it? Two failure modes:
    a bot-protection challenge, or `200 OK` with an empty body because the page is drawn by
@@ -113,13 +119,17 @@ Three checks. The first two catch each other's mistakes, so never run one alone.
    as a floor and never as a count. On one site the bare form returned 2 URLs and the query form
    returned 12, a six-fold understatement that would have sent us fixing distribution when the
    real problem was ranking.
+4. **To prove one page is missing, `search` a distinctive sentence from it in quotes.** Both
+   `site:` forms are ranked samples, so neither can establish absence — a page missing from one
+   query's sample turns up in another's. An exact phrase is the only probe that answers "is *this
+   page* in the index". Nothing back means genuinely unindexed. Use this before any `submit_url`.
 
 Judge **per URL**, not per domain. One site is routinely in three of these rows at once.
 
 | fetch | `site:` and `site: <query>` | meaning | fix |
 | --- | --- | --- | --- |
 | readable | page-specific description | outranked, not invisible | content |
-| readable | absent from **both** forms | crawler can read it, Brave never came | `submit_url` |
+| readable | absent from both forms **and** from an exact-phrase search | crawler can read it, Brave never came | `submit_url` |
 | blocked | placeholder, generic, or nothing | crawler cannot read it | infrastructure — nothing else counts |
 | blocked | page-specific description | **your fetch is wrong, not the site** | re-test from another network |
 
@@ -146,8 +156,10 @@ challenger 4 times.
 
 - **Homepage.** Fetch readable; `site:` returns a page-specific description. Indexed and read,
   simply outranked. Fix: content.
-- **Their three most on-topic blog posts.** Fetch readable; absent from `site:` *and* from
-  `site: <query>`. Written, published, never crawled. Fix: `submit_url`.
+- **A post that should have ranked, missing from both `site:` forms.** Suspicion only — both are
+  samples. An exact sentence from it, searched in quotes, is what decides. Returns nothing →
+  `submit_url`. Returns the page → it was indexed all along and you have a ranking problem.
+  Never submit a page that is a JavaScript shell: you only re-index the boilerplate.
 - **`app.<vendor>.ai/terms`.** Fetch returns `200` with an empty body; `site:` shows it under the
   *homepage's* title and description. A JavaScript shell, indexed as boilerplate. Fix:
   server-render it.
@@ -170,8 +182,18 @@ Fetch the pages that rank for the query and count how often your name appears in
 
 So there are two independent paths, and only the first needs your website to work:
 
-1. Rank your own page.
-2. Be named inside pages that already rank.
+1. **Rank your own page.** §2 tells you whether that is even possible yet.
+2. **Be named inside pages that already rank.** This is the cheaper path and the one people leave
+   as an aspiration, so here is the actual work:
+   - **Fix the sentence partners use.** Whatever clause appears in their press releases is what
+     the model reproduces, so make it self-describing — the product category, not just the name —
+     and put it in the co-marketing agreement as a required line.
+   - **Get into the round-ups that already rank.** Step 1 of the flow told you which pages those
+     are. Most take submissions or updates; ask.
+   - **Write the round-up yourself.** In several categories every ranking page is a vendor's own
+     "N best tools" post. If that is the format winning your query, it is available to you too.
+   - **Brief the trade press in your vertical.** Mentions cluster by vocabulary: coverage in your
+     niche's outlets is what puts you in the corpus the model pulls for niche-worded prompts.
 
 **Example — same vendor, two queries.** Count their name across the pages that rank for each:
 
