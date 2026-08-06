@@ -62,6 +62,15 @@
       "skills": [
         "./skills/reddit"
       ]
+    },
+    {
+      "name": "saas-invoices",
+      "description": "Fetch and download invoices for paid SaaS: a per-host list_invoices script returns each invoice URL, then a generic download step routed on the URL's domain fetches the PDF.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/saas-invoices"
+      ]
     }
   ]
 }
