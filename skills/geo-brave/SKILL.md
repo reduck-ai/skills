@@ -1,8 +1,8 @@
 ---
 name: geo-brave
 description: |
-    Brave Search's optimization — the substrate behind Claude's web_search —
-    and how to diagnose whether a domain is in it. Use for GEO/AEO work: "why don't we
+    Get a site cited by Claude, by working on Brave — the index behind Claude's
+    web search — and finding out how the site stands in it. Use for GEO/AEO work: "why don't we
     show up in Claude", "are we indexed", "optimize for AI search visibility",
     "get cited by LLMs". NOT for Google SEO (different index, different levers).
 ---

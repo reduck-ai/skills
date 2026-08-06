@@ -8,7 +8,7 @@ Skills use [Reduck](https://reduck.ai) MCP which allows agents to discover, run 
 
 | Skill | What it does |
 | --- | --- |
-| [`geo-brave`](skills/geo-brave) | Why an LLM never cites your site, and which lever fixes it — harvests the queries Claude actually searches, then reads Brave's index to separate unreadable from unindexed from merely outranked. |
+| [`geo-brave`](skills/geo-brave) | Get your site cited by Claude — see which queries it searches, check how you show up in Brave (the index behind its web search), and fix what's holding you back. |
 | [`saas-invoices`](skills/saas-invoices) | Fetch and download invoices for paid SaaS — list them per vendor, then route the PDF download on the invoice URL's domain. |
 | [`amazon-research`](skills/amazon-research) | Amazon US product research — search and price, listing plus review analysis, and category scans for high-demand / poorly-rated openings. |
 | [`facebook-leads`](skills/facebook-leads) | Prospect and qualify leads from Facebook Group and Page activity — live communities, top threads, commenters and members. |

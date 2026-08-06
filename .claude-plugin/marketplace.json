@@ -29,7 +29,7 @@
     },
     {
       "name": "geo-brave",
-      "description": "Find out why an LLM never cites your site, and what to do about it. Harvests the queries Claude actually searches, then reads Brave's index \u2014 the substrate behind its web_search \u2014 to separate unreadable from unindexed from merely outranked, and picks the lever.",
+      "description": "Get your site cited by Claude. Shows which queries Claude searches, then checks Brave \u2014 the index behind its web search \u2014 to tell you whether your pages can be read, whether Brave has them at all, or whether they are simply ranked too low, and which one to fix first.",
       "source": "./",
       "strict": false,
       "skills": [
