@@ -23,6 +23,19 @@ Follow the instructions at [start.reduck.ai](https://start.reduck.ai/) to pair y
 
 ## Install
 
+### Claude marketplace
+
+This is the preferred method if you use Claude as skills auto update:
+
+```
+/plugin marketplace add reduck-ai/skills
+/plugin install geo-brave@reduck-skills
+```
+
+`/plugin marketplace update` pulls later changes.
+
+### Skills CLI
+
 Any agent, via the [skills CLI](https://skills.sh):
 
 ```bash
@@ -32,24 +45,19 @@ npx skills add reduck-ai/skills --skill '*'     # everything
 npx skills use reduck-ai/skills@geo-brave       # try one without installing
 ```
 
-Claude Code, via the [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces):
-
-```
-/plugin marketplace add reduck-ai/skills
-/plugin install geo-brave@reduck-skills
-```
-
-`/plugin marketplace update` pulls later changes.
-
-For an agent that takes neither, `scripts/build-skill-zips.sh` writes one uploadable zip per
-skill into `dist/` (e.g. for Claude Desktop's Settings → Capabilities → Skills → Upload).
-
-Manual install: copy a skill's directory into your agent's skills directory, e.g.
-`~/.claude/skills/geo-brave/`.
-
 ## Contributing a skill
 
-One directory per skill, one level deep: `skills/<name>/SKILL.md`, where `<name>` is
+### Identifying / building the script
+
+The main unit is a script which is called like a tool through Reduck MCP.
+
+You can reference one of the [official scripts](https://reduck.ai/explore) or create your own with Reduck MCP.
+
+### Writing skill
+
+Skills encapsulate scripts and provide the business logic to achieve a specific goal.
+
+Skills are available as `skills/<name>/SKILL.md`, where `<name>` is
 lowercase-hyphenated and matches the `name` in the frontmatter. Nothing nests — a flat catalogue
 is what makes the CLI find every skill without `--full-depth`.
 
@@ -72,19 +80,7 @@ description: |
 
 Read their contracts live with `read_script` Reduck MCP.
 
-# <the method>
-
-Why the flow is the way it is, then the flow.
 ```
-
-Two rules keep these from rotting:
-
-- **Addresses only in `# Requirements`.** No argument lists, no output fields — `read_script`
-  answers those live, and a copy in prose is a copy that drifts. Verify every address exists
-  (`list_scripts handle:"official" host:"<host>"`) before you commit it.
-- **Keep what changes behavior.** A gotcha earns its place if it changes what the agent does:
-  an approval gate before a write, a run-them-one-at-a-time constraint, a key that must be
-  resolved rather than guessed.
 
 Then add the skill to `.claude-plugin/marketplace.json` (one entry, `"skills": ["./skills/<name>"]`)
 and to the table above.
