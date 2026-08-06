@@ -7,6 +7,16 @@ description: |
     "get cited by LLMs". NOT for Google SEO (different index, different levers).
 ---
 
+# Requirements
+
+- **Reduck MCP, with the browser extension installed.** If it isn't set up, follow the instructions at [start.reduck.ai](https://start.reduck.ai/).
+
+- **`reduck/search.brave.com/search`**
+- **`reduck/search.brave.com/submit_url`**
+- **`reduck/claude.ai/ask`**
+
+Read their contracts live with `read_script` Reduck MCP.
+
 # GEO on Brave
 
 First principle: **an LLM can only cite what its search tool retrieves.** Retrieval
@@ -17,222 +27,185 @@ The goal of GEO is to focus on a few p, observe the q, then try to optimize the 
 - Appear in the search results, primary goal
 - Convince the LLM that to mention one's product once present among the search results, secondary goal
 
-## What is established
+## The flow
 
-- **Brave's index is independent** — not Bing, not Google.
-  Proof: [search.brave.com/help](https://search.brave.com/help) — "built on its own
-  independent search index. It doesn't rely on Big Tech companies like Bing".
-- **Scale and refresh: ~40B pages, >100M pages added or refreshed per day.**
-  Proof: [brave.com/blog/search-api-growth](https://brave.com/blog/search-api-growth/)
-  (Feb 2026). Older figure on [brave.com/search/api](https://brave.com/search/api/):
-  "over 30 billion pages… over 100 million page updates every day".
-  Arithmetic: 100M/40B = **0.25% of the index per day**, a ~400-day average round trip.
-  So refresh is sharply prioritized — the long tail is effectively never re-fetched, and
-  a manual submit is the only lever a site owner has over its own page.
-- **The crawler has no distinguishing user agent, deliberately.**
-  Proof: [Brave Search Crawler](https://search.brave.com/help/brave-search-crawler) —
-  "does not advertise a differentiated user agent because we must avoid discrimination
-  from websites that allow only Google to crawl them".
-  Consequence: it is invisible in your logs, and **it can never appear on any
-  verified-bot allowlist** (Cloudflare, Vercel, Akamai). To a bot-protection product it
-  looks exactly like the traffic being challenged. This is the single most important
-  fact in this file.
-- **`robots.txt` does not control indexing; `noindex` does, and only after a re-fetch.**
-  Proof: same page — "robots.txt is not used to prevent a page from being indexed…
-  Brave needs to re-fetch it in order to apply the changes".
-- **Discovery is crawler + Web Discovery Project (WDP)**, an opt-in, off-by-default
-  telemetry stream from Brave browser users.
-  Proof: same page, and [WDP help](https://support.brave.app/hc/en-us/articles/4409406835469-What-is-the-Web-Discovery-Project).
+One `ask` gives you the queries. Harvest them — never invent them. Everything after that runs
+once per query.
 
-## Ranking: what Brave actually discloses
+**Once per surface** — a surface is a domain plus a way of rendering pages. Re-run when you add
+a subdomain, add a new rendering path, or change infrastructure. Otherwise you are trusting a
+stale pass.
 
-Brave has never published a ranking-signal document. Two sources, descending in value:
+| Probe | Tells you |
+| --- | --- |
+| `search(brand)` | whether your domain ranks for your own name — and what ranks instead of it |
+| `search(site:me)` | whether anything of yours is indexed and read. **A floor, never a count** |
+| fetch one URL per rendering path | whether a crawler can read you at all |
 
-- **The closest thing to a signal list is the WDP help page**, stating what Brave needs
-  in order to rank relevantly: keyword match (exact words, parts, synonyms); how recent
-  searches are; **how often a result is clicked for a keyword**; keyword popularity;
-  **what pages are popular or novel**; which sites only allow Googlebot.
-  Proof: [WDP help page](https://support.brave.app/hc/en-us/articles/4409406835469-What-is-the-Web-Discovery-Project).
-  Read the omission as data: **backlinks, domain authority, and link-graph signals are
-  named nowhere** — not there, not in Brave's own paper, not in the API docs.
-- **Retrieval architecture, from Brave's own paper:** a **recall phase** matching the
-  query against billions of pages with "simple features", cutting to a candidate set
-  "typically in the order of few thousands"; then **precision phases** with "increasingly
-  sophisticated and costly models"; final ranking over a very small set.
-  Proof: [goggles.pdf](https://brave.com/static-assets/files/goggles.pdf) §4.
-  Consequence: **the recall phase is keyword matching over indexed text.** A page with no
-  indexed body text cannot enter the candidate set at any price.
+**Per query worth winning**
+
+1. **Breadth** — `search(q)`, then fetch every result. Where am I, and how many of these pages
+   mention my name?
+2. **Where I stand** — `search(site:me q)`. Nothing means no ammunition. Something that never
+   appeared in step 1 means you have it and it is losing.
+3. **What winning looks like** — `search(site:winner q)`, then fetch. The winner is a page that
+   **ranks high *and* was cited by the model**; one the model skipped is not a template.
+
+The three steps end in a single comparison — length, structure, how often the query's main
+phrase appears, freshness — theirs against yours. That comparison is the action.
+
+# 1 - Assess from prompt to sources to answer
+
+**Why.** "We weren't mentioned" has three different causes, and each needs a different fix.
+Guessing wastes months. One run tells you which one you have.
+
+Run `ask` on a prompt you want to win. Read three fields:
+
+- **queries** — what the model actually searched. Rarely your words.
+- **sources** — every page its tools read, not only the ones the answer cites.
+- **answer** — what the user sees.
+
+**One `ask` is a single draw, not a measurement.** The model may reformulate differently, or not
+search at all, on the next run of the same prompt. Repeat a prompt before you conclude anything
+from it, and treat "it named us once" as weaker evidence than "it named us three times out of
+three".
+
+| What you see | Cause | What to do |
+| --- | --- | --- |
+| no queries | the prompt never triggers a search | pick a different prompt — nothing else can work |
+| searched, you are not in sources | not retrieved | go to §2 |
+| in sources, not in the answer | read and passed over | rewrite the page |
+
+**The pages returned need not be from your domain to be named.** The model reads the *text*
+of what it retrieves, so a mention of you inside someone else's page counts just as much as a
+page you own — a press article, a competitor's round-up, a marketplace listing. Check both.
+
+**Running example — one vendor, used throughout this file.** They sell insurance-distribution
+software.
+
+- *"Which insurers let you get a quote inside ChatGPT?"* → the model searched
+  `insurance quote inside ChatGPT partners` → 9 sources, **none of them theirs** → **the answer
+  named them anyway**, because 2 of those 9 pages contained "powered by <vendor>'s AI
+  distribution infrastructure", lifted verbatim from a partner's press release.
+- *"How can an insurance company sell products inside ChatGPT and Claude?"* → the model
+  searched `ChatGPT apps SDK sell products directly in chat` → 17 sources, zero mentions →
+  **not named**.
+
+Same company, same day. The wording of the prompt decided which part of the index the model
+searched, and only one of them contained them.
+
+# 2 - Analyse current ranking
+
+**Why.** "Not retrieved" has two causes that look identical and need opposite work. Either the
+crawler cannot read your page — and then no amount of writing helps — or it can, and you are
+simply not scored high enough. Find out which before spending anything.
+
+Four checks. The first two catch each other's mistakes, so never run one alone; the fourth is
+only needed when you are about to act on a page looking absent.
+
+1. **Fetch your own URL with a plain HTTP client.** *Can* a crawler read it? Two failure modes:
+   a bot-protection challenge, or `200 OK` with an empty body because the page is drawn by
+   JavaScript. Brave's crawler advertises no user agent of its own, so it can never be added to
+   a verified-bot allowlist — to bot protection it looks exactly like the traffic being blocked.
+2. **`search` with `site:yourdomain.com`.** *Has* Brave read it? For each result ask whether the
+   description describes **that page**. A page-specific one means yes. The placeholder "We
+   cannot provide a description for this page right now" means Brave holds the URL and nothing
+   else. A generic site-wide line — or one belonging to a different page — means Brave indexed
+   the shell, not the content.
+3. **`search` with `site:yourdomain.com <query>`.** *What do I have that is relevant to this
+   query?* Bare `site:` returns a small ranked sample, **not everything Brave holds** — read it
+   as a floor and never as a count. On one site the bare form returned 2 URLs and the query form
+   returned 12, a six-fold understatement that would have sent us fixing distribution when the
+   real problem was ranking.
+4. **To prove one page is missing, `search` a distinctive sentence from it in quotes.** Both
+   `site:` forms are ranked samples, so neither can establish absence — a page missing from one
+   query's sample turns up in another's. An exact phrase is the only probe that answers "is *this
+   page* in the index". Nothing back means genuinely unindexed. Use this before any `submit_url`.
+
+Judge **per URL**, not per domain. One site is routinely in three of these rows at once.
+
+| fetch | `site:` and `site: <query>` | meaning | fix |
+| --- | --- | --- | --- |
+| readable | page-specific description | outranked, not invisible | content |
+| readable | absent from both forms **and** from an exact-phrase search | crawler can read it, Brave never came | `submit_url` |
+| blocked | placeholder, generic, or nothing | crawler cannot read it | infrastructure — nothing else counts |
+| blocked | page-specific description | **your fetch is wrong, not the site** | re-test from another network |
+
+Both bottom rows are real. One site refused our client with `403` while ranking at #12 with a
+fresh, page-specific description — the block was aimed at our IP, not at crawlers. Another
+served an empty JavaScript shell on every route, and Brave had indexed its terms page under the
+*homepage's* title and description. Never diagnose on the fetch alone, and never take a
+description at face value without checking it belongs to the page.
+
+`operatorsApplied: false` means Brave found too few documents matching your operator, dropped
+it, and answered a relaxed query instead. Read it two ways at once. Discard the **results** —
+they are soft relevance over the whole web, not filtered by your `site:`. But the **flag itself
+is signal**: the domain really is thin on this topic. Separate "thin here" from "nothing at all"
+against bare `site:` — one site came back `false` with a single URL indexed, another `true` with
+twelve. The flag is vacuously `true` for a query carrying no operators, so only read it when you
+passed one.
+
+**Outranked** → compare your page against the ones that rank for the words the model actually
+searched (§1 gave you those words). The difference is usually how often the query's main phrase
+appears: on one query the pages at rank 1 and rank 4 used it 32 and 23 times, the unranked
+challenger 4 times.
+
+**Example — same vendor.** Three of their surfaces, three different verdicts:
+
+- **Homepage.** Fetch readable; `site:` returns a page-specific description. Indexed and read,
+  simply outranked. Fix: content.
+- **A post that should have ranked, missing from both `site:` forms.** Suspicion only — both are
+  samples. An exact sentence from it, searched in quotes, is what decides. Returns nothing →
+  `submit_url`. Returns the page → it was indexed all along and you have a ranking problem.
+  Never submit a page that is a JavaScript shell: you only re-index the boilerplate.
+- **`app.<vendor>.ai/terms`.** Fetch returns `200` with an empty body; `site:` shows it under the
+  *homepage's* title and description. A JavaScript shell, indexed as boilerplate. Fix:
+  server-render it.
+
+Bare `site:` returned only 2 URLs for this domain, which looked fatal. `site: <query>` returned
+12, ten of them blog posts with page-specific descriptions. Trusting the bare form would have
+sent them submitting 36 URLs that were already in the index.
+
+# 3 - Choose the lever
+
+**Why.** §1 and §2 tell you what is broken. They do not tell you what is worth fixing. The
+cheapest lever is usually not on your website at all, and you cannot see it without looking at
+what the ranking pages actually say.
+
+Fetch the pages that rank for the query and count how often your name appears in them.
+
+- **If it appears in none of them, no model can name you.** It only knows what it read. This is
+  the one hard rule, and it holds regardless of how good your own pages are.
+- **The dose is tiny.** One mention, in one retrieved page, was enough to get named.
+
+So there are two independent paths, and only the first needs your website to work:
+
+1. **Rank your own page.** §2 tells you whether that is even possible yet.
+2. **Be named inside pages that already rank.** This is the cheaper path and the one people leave
+   as an aspiration, so here is the actual work:
+   - **Fix the sentence partners use.** Whatever clause appears in their press releases is what
+     the model reproduces, so make it self-describing — the product category, not just the name —
+     and put it in the co-marketing agreement as a required line.
+   - **Get into the round-ups that already rank.** Step 1 of the flow told you which pages those
+     are. Most take submissions or updates; ask.
+   - **Write the round-up yourself.** In several categories every ranking page is a vendor's own
+     "N best tools" post. If that is the format winning your query, it is available to you too.
+   - **Brief the trade press in your vertical.** Mentions cluster by vocabulary: coverage in your
+     niche's outlets is what puts you in the corpus the model pulls for niche-worded prompts.
+
+**Example — same vendor, two queries.** Count their name across the pages that rank for each:
+
+- The generic query (`ChatGPT apps SDK sell products directly in chat`) — **0 mentions across
+  the 20 ranking pages.** Never named, on any prompt that reformulated this way.
+- The insurance-worded query (`insurance ChatGPT app distribution`) — **5 of the 19 ranking
+  pages** carried "powered by *<vendor>*'s AI distribution infrastructure". The model named
+  them, reproducing that phrase almost word for word.
+
+Not one of their own pages was retrieved in either case.
+
+Which means the boilerplate in someone else's announcement is how the model describes you.
+Write that sentence deliberately.
 
 
 
-
-## Requirements
-
-- **Reduck MCP, with the browser extension installed.** If it isn't set up, follow the
-  instructions at [start.reduck.ai](https://start.reduck.ai/).
-
-## Scripts
-
-Three Reduck scripts cover the loop: one reads the index, one writes to it, one reads the
-outcome that actually matters.
-
-- **`reduck/search.brave.com/search`** — read the index (`site:` queries, `offset` paging).
-- **`reduck/search.brave.com/submit_url`** — request a re-fetch of one URL.
-- **`reduck/claude.ai/ask`** — ask Claude one question, read what its tools surfaced.
-
-`ask` is what makes any of this measurable. Alongside the answer it returns
-`webSearchQueries` — the queries Claude actually issued — and `sources`: **the candidate
-pool its `web_search`/`web_fetch` surfaced, not only what the answer cites** (each entry
-tagged with which tool found it). That exposes the layer between prompt and answer that is
-otherwise invisible, and it is what turns "we weren't mentioned" into a located fault.
-`sources` is empty when no tool ran.
-
-Read their contracts live with `read_script` rather than trusting a copy: they carry the
-args, return shapes and caveats.
-
-The two Brave scripts need no login. `ask` requires a signed-in claude.ai session — there
-is no anonymous chat; chain `reduck/claude.ai/login` if the session has lapsed. One
-IP-keyed rate limiter guards both Brave scripts, so a captcha means back off 30-60s rather
-than retrying. Each `ask` also creates a real conversation, so a wide sweep leaves clutter
-— `reduck/claude.ai/delete_chat` takes the `conversationId` values back out.
-
-## Reading a failure
-
-Run `ask` on a prompt you want to win, then attribute the miss to one stage:
-
-| Observation | Stage that failed | Read it as |
-|---|---|---|
-| `webSearchQueries: []` | Nothing was retrieved | Wrong prompt to target — answered from memory, no GEO lever applies |
-| Searched, you are absent from `sources` | Retrieval | Drop to the `site:` probe to split index vs rank |
-| Present in `sources`, absent from the answer | Selection | The only genuine content problem — you were read and passed over |
-
-**Judge yourself on `sources`, never on the prose.** A model naming your product because it
-is a connected tool in the session says nothing about discoverability.
-
-## Diagnosing a domain
-
-Run `site:example.com` on search.brave.com and read **two** signals:
-
-1. **URL present** → Brave knows the page exists.
-2. **Description present** → Brave actually fetched and read it.
-
-A result reading **"We cannot provide a description for this page right now"** means
-**URL-known, content-unread**. That page has no body text in the index, so it cannot
-survive the recall phase. This is the diagnostic that matters, and it is invisible if you
-only count results.
-
-Through the `search` script that state is a field, not a judgement call: the result comes
-back with **`snippet: null`**. Also check **`operatorsApplied`** — when it is `false` Brave
-dropped your `site:` and relaxed the query, so the results are soft-relevance and a real
-"not indexed" is indistinguishable from a filtered one. Treat that run as no data and
-retry, never as a negative.
-
-Then contrast against `site:example.com` on Google. Google indexed but Brave blank
-isolates the cause to crawler access, not content.
-
-Operator caveat, proven: `site:X OR site:Y` returned **"search operators were not
-applied"** on 2026-08-05. Brave's own page calls operators "experimental and in the early
-stage of development" ([operators](https://search.brave.com/help/operators)).
-**Run one `site:` per query.**
-
-## Worked case: a site behind a bot challenge
-
-A real diagnosis, run 2026-08-05, generalised. The domain was a SaaS marketing site on
-Vercel with bot protection enabled. Symptoms, in the order the probes surface them:
-
-- **Brave `site:example.com` → exactly one result**: the homepage, title only,
-  "We cannot provide a description for this page right now", pager greyed out. Deeper
-  paths and subdomains → nothing.
-- **Google `site:example.com`** → homepage with a full snippet, plus `/pricing`, several
-  subdomains, and more. **This contrast is the whole diagnosis**: content that Google
-  reads and Brave cannot is an access problem, not a content problem.
-- **Brave indexed the product, just not the owned domain.** A plain brand-name query
-  surfaced the Chrome Web Store listing and the npm package with proper descriptions.
-  Third-party surfaces out-described the owned domain, because they sit on crawlable hosts.
-- **Cause — the bot challenge.** Real Chrome hitting `/robots.txt` first got
-  **"Vercel Security Checkpoint — We're verifying your browser"**, revealing the file only
-  after the JS challenge resolved. Every non-browser client got `HTTP 429` plus the
-  checkpoint page, on `/`, `/robots.txt` **and** `/sitemap.xml`:
-
-  ```
-  Googlebot UA   /  /robots.txt  /sitemap.xml   HTTP 429  << CHECKPOINT
-  curl/8.0       /  /robots.txt  /sitemap.xml   HTTP 429  << CHECKPOINT
-  Chrome UA      /  /robots.txt  /sitemap.xml   HTTP 429  << CHECKPOINT
-  ```
-
-- The `robots.txt` itself was correct — only authenticated app routes disallowed, sitemap
-  declared. **The file was fine; it was unreachable.** A crawler that cannot read
-  `robots.txt` or `sitemap.xml` has no route in at all.
-- **Honest limits of that experiment:** the Googlebot-UA row came from a residential IP,
-  which real reverse-DNS verification rejects — it does *not* show real Googlebot being
-  blocked, and Google's index proved it wasn't. The `429` may partly reflect the test's own
-  request volume. Neither weakens the conclusion: the Brave index state was observed
-  before any of the curl traffic, and an unidentifiable crawler cannot be allowlisted.
-
-## The rule this yields
-
-> Bot protection on a public marketing or docs surface is a GEO kill switch.
-> Googlebot survives it via verified-bot allowlisting. Brave, having no user agent to
-> allowlist, cannot. Result: URL indexed, content blank, permanently unretrievable.
-
-**So the first GEO action on any domain is never content — it is confirming a crawler can
-read the page.** Check `site:` for descriptions, and check what a plain HTTP client gets.
-Content and phrasing work is wasted spend until that passes.
-
-## Is Claude's web_search Brave-backed? Experiment, 2026-08-06
-
-Method: ask a question via `reduck/claude.ai/ask`, read the `webSearchQueries` and
-`sources` it returns (the candidate pool, not just cited sources), then replay each query
-verbatim on Brave and — as a control — on Google.
-
-**Result: 32 of 32 of Claude's sources appeared in Brave's first page. Zero misses.**
-
-| Claude's query | sources | in Brave | in Google |
-|---|---|---|---|
-| `Claude LinkedIn Sales Navigator integration MCP connector` | 8 | 8/8 (top 20) | 6/8 (top ~28) |
-| `best MCP servers browser automation 2026` | 8 | 8/8 (top 8) | 5/8 (top 9) |
-| `chrome-devtools-mcp vs playwright mcp browser automation comparison` | 7 | 7/7 (top 12) | not run |
-| `AI agent automatically download invoices from vendor portals` | 9 | 9/9 (top 13) | not run |
-
-Strongest single datapoint: for `best MCP servers browser automation 2026`, Claude's 8
-sources were **exactly Brave's top 8 as a set** — same eight URLs, reordered. Google's top
-9 for that query included `daily.dev`, `skillsllm` and `medium.com`, none of which Claude
-saw, and a *different* unbrowse.ai URL than the one Claude read.
-
-**Status: strong behavioral evidence, not documentary proof.** No Anthropic or Brave
-statement names the other; Brave's [blog](https://brave.com/blog/search-api-growth/) claims
-its API supplies "most of the top-10 LLMs" but names no customer.
-[trust.anthropic.com/subprocessors](https://trust.anthropic.com/subprocessors) is
-JS-rendered and was not read. What lifts this above coincidence is the asymmetry against
-the Google control plus the exact set match — and that Brave was queried from a different
-IP and session than Anthropic's, which should have added noise and did not.
-
-### Observed behaviour of the layer on top of Brave
-
-- Takes a **contiguous slice of Brave's head**, roughly top 8–13. Never anything deep.
-  A page at Brave position ~12+ was never in the pool.
-- **Reorders** — Claude's source order never matched Brave's rank order.
-- **Filters inconsistently.** On the LinkedIn query it dropped every directory and GitHub
-  result and kept prose articles. On the devtools query it took only one of two
-  `stevekinney.com` and one of two `vibebrowser.app` pages. But on the invoice query it
-  took **both** `glideapps.com` URLs — so per-domain dedup is not a fixed rule.
-
-### Consequences for GEO
-
-- **Claude searches its own reformulation, not the user's words.** "How to use Claude with
-  LinkedIn Sales Navigator?" became `Claude LinkedIn Sales Navigator integration MCP
-  connector`. Reformulations were keyword-dense, tool-named, often year-stamped (`2026`).
-  Those are the keywords that matter, and `ask` surfaces them directly via
-  `webSearchQueries` — a free keyword-research instrument aimed at Brave.
-- **Fan-out is wide but shallow**: one question produced up to 5 queries and 43 sources,
-  yet each query only reached ~10 URLs deep.
-- **Not every question searches.** "How can an AI agent automate filling out forms on
-  legacy web portals?" returned `webSearchQueries: []` — answered from parametric
-  knowledge. Generic how-to questions may never trigger retrieval; specific, current,
-  comparative or vendor-named ones did.
-- **Being a connected tool in the session is not visibility.** A model naming your product
-  because it is loaded as a tool tells you nothing about discoverability. Only its presence
-  in `sources` does. Judge yourself on the candidate pool, never on the prose.
-
-The crawler-access finding above is independent of this and holds for **every** engine
-whose crawler cannot be allowlisted.
+# Re usable code snippets
