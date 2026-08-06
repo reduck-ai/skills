@@ -29,6 +29,33 @@ The goal of GEO is to focus on a few p, observe the q, then try to optimize the 
 - Appear in the search results, primary goal
 - Convince the LLM that to mention one's product once present among the search results, secondary goal
 
+## The flow
+
+One `ask` gives you the queries. Harvest them — never invent them. Everything after that runs
+once per query.
+
+**Once per surface** — a surface is a domain plus a way of rendering pages. Re-run when you add
+a subdomain, add a new rendering path, or change infrastructure. Otherwise you are trusting a
+stale pass.
+
+| Probe | Tells you |
+| --- | --- |
+| `search(brand)` | whether your domain ranks for your own name — and what ranks instead of it |
+| `search(site:me)` | whether anything of yours is indexed and read. **A floor, never a count** |
+| fetch one URL per rendering path | whether a crawler can read you at all |
+
+**Per query worth winning**
+
+1. **Breadth** — `search(q)`, then fetch every result. Where am I, and how many of these pages
+   mention my name?
+2. **Where I stand** — `search(site:me q)`. Nothing means no ammunition. Something that never
+   appeared in step 1 means you have it and it is losing.
+3. **What winning looks like** — `search(site:winner q)`, then fetch. The winner is a page that
+   **ranks high *and* was cited by the model**; one the model skipped is not a template.
+
+The three steps end in a single comparison — length, structure, how often the query's main
+phrase appears, freshness — theirs against yours. That comparison is the action.
+
 # 1 - Assess from prompt to sources to answer
 
 **Why.** "We weren't mentioned" has three different causes, and each needs a different fix.
@@ -50,12 +77,13 @@ Run `ask` on a prompt you want to win. Read three fields:
 of what it retrieves, so a mention of you inside someone else's page counts just as much as a
 page you own — a press article, a competitor's round-up, a marketplace listing. Check both.
 
-**Example.** A vendor selling insurance-distribution software, no page of theirs indexed:
+**Running example — one vendor, used throughout this file.** They sell insurance-distribution
+software.
 
 - *"Which insurers let you get a quote inside ChatGPT?"* → the model searched
-  `insurance quote inside ChatGPT partners` → 9 sources, **none theirs** → **the answer named
-  them**, because 2 of those 9 pages contained "powered by <vendor>'s AI distribution
-  infrastructure", lifted verbatim from a partner's press release.
+  `insurance quote inside ChatGPT partners` → 9 sources, **none of them theirs** → **the answer
+  named them anyway**, because 2 of those 9 pages contained "powered by <vendor>'s AI
+  distribution infrastructure", lifted verbatim from a partner's press release.
 - *"How can an insurance company sell products inside ChatGPT and Claude?"* → the model
   searched `ChatGPT apps SDK sell products directly in chat` → 17 sources, zero mentions →
   **not named**.
@@ -67,9 +95,9 @@ searched, and only one of them contained them.
 
 **Why.** "Not retrieved" has two causes that look identical and need opposite work. Either the
 crawler cannot read your page — and then no amount of writing helps — or it can, and you are
-simply beaten. Find out which before spending anything.
+simply not scored high enough. Find out which before spending anything.
 
-Two checks. Each catches the other's mistake, so run both.
+Three checks. The first two catch each other's mistakes, so never run one alone.
 
 1. **Fetch your own URL with a plain HTTP client.** *Can* a crawler read it? Two failure modes:
    a bot-protection challenge, or `200 OK` with an empty body because the page is drawn by
@@ -79,14 +107,19 @@ Two checks. Each catches the other's mistake, so run both.
    description describes **that page**. A page-specific one means yes. The placeholder "We
    cannot provide a description for this page right now" means Brave holds the URL and nothing
    else. A generic site-wide line — or one belonging to a different page — means Brave indexed
-   the shell, not the content. No result means the URL is not in the index at all.
+   the shell, not the content.
+3. **`search` with `site:yourdomain.com <query>`.** *What do I have that is relevant to this
+   query?* Bare `site:` returns a small ranked sample, **not everything Brave holds** — read it
+   as a floor and never as a count. On one site the bare form returned 2 URLs and the query form
+   returned 12, a six-fold understatement that would have sent us fixing distribution when the
+   real problem was ranking.
 
 Judge **per URL**, not per domain. One site is routinely in three of these rows at once.
 
-| fetch | `site:` | meaning | fix |
+| fetch | `site:` and `site: <query>` | meaning | fix |
 | --- | --- | --- | --- |
 | readable | page-specific description | outranked, not invisible | content |
-| readable | missing | crawler can read it, Brave never came | `submit_url` |
+| readable | absent from **both** forms | crawler can read it, Brave never came | `submit_url` |
 | blocked | placeholder, generic, or nothing | crawler cannot read it | infrastructure — nothing else counts |
 | blocked | page-specific description | **your fetch is wrong, not the site** | re-test from another network |
 
@@ -96,22 +129,32 @@ served an empty JavaScript shell on every route, and Brave had indexed its terms
 *homepage's* title and description. Never diagnose on the fetch alone, and never take a
 description at face value without checking it belongs to the page.
 
-If `operatorsApplied` comes back `false`, Brave dropped your `site:` filter and answered a
-looser question. That is no data, not a zero — never read it as "not indexed".
+`operatorsApplied: false` means Brave found too few documents matching your operator, dropped
+it, and answered a relaxed query instead. Read it two ways at once. Discard the **results** —
+they are soft relevance over the whole web, not filtered by your `site:`. But the **flag itself
+is signal**: the domain really is thin on this topic. Separate "thin here" from "nothing at all"
+against bare `site:` — one site came back `false` with a single URL indexed, another `true` with
+twelve. The flag is vacuously `true` for a query carrying no operators, so only read it when you
+passed one.
 
 **Outranked** → compare your page against the ones that rank for the words the model actually
 searched (§1 gave you those words). The difference is usually how often the query's main phrase
 appears: on one query the pages at rank 1 and rank 4 used it 32 and 23 times, the unranked
 challenger 4 times.
 
-**Example.** Two vendors, same day.
+**Example — same vendor.** Three of their surfaces, three different verdicts:
 
-- One: `site:` returns a single URL with the "cannot provide a description" placeholder. A plain
-  fetch of the homepage returns `429` and a browser-verification page. Their content is good and
-  completely invisible. Only the infrastructure fix matters.
-- The other: `site:` returns 2 URLs with real descriptions — but their 36 blog posts, readable
-  and on exactly the right topics, are not among them. Indexed, just not deeply. `submit_url`
-  is the fix.
+- **Homepage.** Fetch readable; `site:` returns a page-specific description. Indexed and read,
+  simply outranked. Fix: content.
+- **Their three most on-topic blog posts.** Fetch readable; absent from `site:` *and* from
+  `site: <query>`. Written, published, never crawled. Fix: `submit_url`.
+- **`app.<vendor>.ai/terms`.** Fetch returns `200` with an empty body; `site:` shows it under the
+  *homepage's* title and description. A JavaScript shell, indexed as boilerplate. Fix:
+  server-render it.
+
+Bare `site:` returned only 2 URLs for this domain, which looked fatal. `site: <query>` returned
+12, ten of them blog posts with page-specific descriptions. Trusting the bare form would have
+sent them submitting 36 URLs that were already in the index.
 
 # 3 - Choose the lever
 
@@ -130,14 +173,15 @@ So there are two independent paths, and only the first needs your website to wor
 1. Rank your own page.
 2. Be named inside pages that already rank.
 
-**Example.** Two vendors, same method.
+**Example — same vendor, two queries.** Count their name across the pages that rank for each:
 
-- One had **0 mentions across the 19 ranking pages** and was never named in any prompt we tried,
-  despite a good product and a real site.
-- The other had **no page of theirs in the index at all**, yet the model named them twice —
-  because 1 to 2 of the 9 pages it read said "powered by *<vendor>*'s AI distribution
-  infrastructure", a line lifted from a partner's press release. The model reproduced that
-  phrase almost word for word.
+- The generic query (`ChatGPT apps SDK sell products directly in chat`) — **0 mentions across
+  the 20 ranking pages.** Never named, on any prompt that reformulated this way.
+- The insurance-worded query (`insurance ChatGPT app distribution`) — **5 of the 19 ranking
+  pages** carried "powered by *<vendor>*'s AI distribution infrastructure". The model named
+  them, reproducing that phrase almost word for word.
+
+Not one of their own pages was retrieved in either case.
 
 Which means the boilerplate in someone else's announcement is how the model describes you.
 Write that sentence deliberately.
